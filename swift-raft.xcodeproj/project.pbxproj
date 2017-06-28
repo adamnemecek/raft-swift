@@ -14,6 +14,10 @@
 		0A4E853C1F044A67006D6ECC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0A4E853A1F044A67006D6ECC /* LaunchScreen.storyboard */; };
 		0A4E85471F044A67006D6ECC /* swift_raftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85461F044A67006D6ECC /* swift_raftTests.swift */; };
 		0A4E85521F044A67006D6ECC /* swift_raftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85511F044A67006D6ECC /* swift_raftUITests.swift */; };
+		0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85611F044D5E006D6ECC /* JsonHelper.swift */; };
+		17FB8CE29321B009E14B55FF /* Pods_swift_raftTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC73F0EF21B6A5C7BD2CCED7 /* Pods_swift_raftTests.framework */; };
+		1C3D0C6151423145D99555CA /* Pods_swift_raft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F5A4FDF16BF47211CC032C7 /* Pods_swift_raft.framework */; };
+		E3C666725A5C10360BC4C0F5 /* Pods_swift_raftUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF81A8AB023D21E9BBDC7944 /* Pods_swift_raftUITests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +51,16 @@
 		0A4E854D1F044A67006D6ECC /* swift-raftUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "swift-raftUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A4E85511F044A67006D6ECC /* swift_raftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = swift_raftUITests.swift; sourceTree = "<group>"; };
 		0A4E85531F044A67006D6ECC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0A4E85611F044D5E006D6ECC /* JsonHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonHelper.swift; sourceTree = "<group>"; };
+		55C5EBBAB80E048EB2B32B56 /* Pods-swift-raftUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftUITests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftUITests/Pods-swift-raftUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		6F440210420B2BEC844768F9 /* Pods-swift-raftTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftTests/Pods-swift-raftTests.debug.xcconfig"; sourceTree = "<group>"; };
+		7959540ECB7654041269F5CF /* Pods-swift-raft.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raft.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raft/Pods-swift-raft.debug.xcconfig"; sourceTree = "<group>"; };
+		7F5A4FDF16BF47211CC032C7 /* Pods_swift_raft.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_swift_raft.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8723AE54E6B055EDD8884910 /* Pods-swift-raftUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftUITests/Pods-swift-raftUITests.release.xcconfig"; sourceTree = "<group>"; };
+		BC5FE68D8089D29E0BCB54C1 /* Pods-swift-raft.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raft.release.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raft/Pods-swift-raft.release.xcconfig"; sourceTree = "<group>"; };
+		BF81A8AB023D21E9BBDC7944 /* Pods_swift_raftUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_swift_raftUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5C99EC9DF08E973F73BF60A /* Pods-swift-raftTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftTests/Pods-swift-raftTests.release.xcconfig"; sourceTree = "<group>"; };
+		FC73F0EF21B6A5C7BD2CCED7 /* Pods_swift_raftTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_swift_raftTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1C3D0C6151423145D99555CA /* Pods_swift_raft.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17FB8CE29321B009E14B55FF /* Pods_swift_raftTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E3C666725A5C10360BC4C0F5 /* Pods_swift_raftUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +98,8 @@
 				0A4E85451F044A67006D6ECC /* swift-raftTests */,
 				0A4E85501F044A67006D6ECC /* swift-raftUITests */,
 				0A4E852F1F044A67006D6ECC /* Products */,
+				239B29D6E79369E212338D73 /* Pods */,
+				9E101113B6FBC0139AFE9023 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -99,6 +118,7 @@
 			children = (
 				0A4E85311F044A67006D6ECC /* AppDelegate.swift */,
 				0A4E85331F044A67006D6ECC /* ViewController.swift */,
+				0A4E85611F044D5E006D6ECC /* JsonHelper.swift */,
 				0A4E85351F044A67006D6ECC /* Main.storyboard */,
 				0A4E85381F044A67006D6ECC /* Assets.xcassets */,
 				0A4E853A1F044A67006D6ECC /* LaunchScreen.storyboard */,
@@ -125,6 +145,29 @@
 			path = "swift-raftUITests";
 			sourceTree = "<group>";
 		};
+		239B29D6E79369E212338D73 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				7959540ECB7654041269F5CF /* Pods-swift-raft.debug.xcconfig */,
+				BC5FE68D8089D29E0BCB54C1 /* Pods-swift-raft.release.xcconfig */,
+				6F440210420B2BEC844768F9 /* Pods-swift-raftTests.debug.xcconfig */,
+				E5C99EC9DF08E973F73BF60A /* Pods-swift-raftTests.release.xcconfig */,
+				55C5EBBAB80E048EB2B32B56 /* Pods-swift-raftUITests.debug.xcconfig */,
+				8723AE54E6B055EDD8884910 /* Pods-swift-raftUITests.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		9E101113B6FBC0139AFE9023 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7F5A4FDF16BF47211CC032C7 /* Pods_swift_raft.framework */,
+				FC73F0EF21B6A5C7BD2CCED7 /* Pods_swift_raftTests.framework */,
+				BF81A8AB023D21E9BBDC7944 /* Pods_swift_raftUITests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -132,9 +175,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0A4E85561F044A67006D6ECC /* Build configuration list for PBXNativeTarget "swift-raft" */;
 			buildPhases = (
+				9FB4429FCD09DB0226320E8E /* [CP] Check Pods Manifest.lock */,
 				0A4E852A1F044A67006D6ECC /* Sources */,
 				0A4E852B1F044A67006D6ECC /* Frameworks */,
 				0A4E852C1F044A67006D6ECC /* Resources */,
+				B659C50C9FA3C4CB07CB676D /* [CP] Embed Pods Frameworks */,
+				2CDF25E72DD733796C7324A2 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -149,9 +195,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0A4E85591F044A67006D6ECC /* Build configuration list for PBXNativeTarget "swift-raftTests" */;
 			buildPhases = (
+				E6E6EAB37AABBDC62BC7D0CA /* [CP] Check Pods Manifest.lock */,
 				0A4E853E1F044A67006D6ECC /* Sources */,
 				0A4E853F1F044A67006D6ECC /* Frameworks */,
 				0A4E85401F044A67006D6ECC /* Resources */,
+				9F96CC4732AD334E5CF1BE3A /* [CP] Embed Pods Frameworks */,
+				7BD29551BC9ED5FB883AA7BF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -167,9 +216,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0A4E855C1F044A67006D6ECC /* Build configuration list for PBXNativeTarget "swift-raftUITests" */;
 			buildPhases = (
+				8FB77BD7874FCF25BD2BAF27 /* [CP] Check Pods Manifest.lock */,
 				0A4E85491F044A67006D6ECC /* Sources */,
 				0A4E854A1F044A67006D6ECC /* Frameworks */,
 				0A4E854B1F044A67006D6ECC /* Resources */,
+				70389C223B7DB24A885F875C /* [CP] Embed Pods Frameworks */,
+				076AC38352CB7E021754E58A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -193,6 +245,7 @@
 				TargetAttributes = {
 					0A4E852D1F044A67006D6ECC = {
 						CreatedOnToolsVersion = 8.3.2;
+						DevelopmentTeam = VSXL9U3YDL;
 						ProvisioningStyle = Automatic;
 					};
 					0A4E85411F044A67006D6ECC = {
@@ -254,11 +307,150 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		076AC38352CB7E021754E58A /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-swift-raftUITests/Pods-swift-raftUITests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2CDF25E72DD733796C7324A2 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-swift-raft/Pods-swift-raft-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		70389C223B7DB24A885F875C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-swift-raftUITests/Pods-swift-raftUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		7BD29551BC9ED5FB883AA7BF /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-swift-raftTests/Pods-swift-raftTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8FB77BD7874FCF25BD2BAF27 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		9F96CC4732AD334E5CF1BE3A /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-swift-raftTests/Pods-swift-raftTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9FB4429FCD09DB0226320E8E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		B659C50C9FA3C4CB07CB676D /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-swift-raft/Pods-swift-raft-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E6E6EAB37AABBDC62BC7D0CA /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		0A4E852A1F044A67006D6ECC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */,
 				0A4E85341F044A67006D6ECC /* ViewController.swift in Sources */,
 				0A4E85321F044A67006D6ECC /* AppDelegate.swift in Sources */,
 			);
@@ -412,8 +604,10 @@
 		};
 		0A4E85571F044A67006D6ECC /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7959540ECB7654041269F5CF /* Pods-swift-raft.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = VSXL9U3YDL;
 				INFOPLIST_FILE = "swift-raft/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "SALIDO.swift-raft";
@@ -424,8 +618,10 @@
 		};
 		0A4E85581F044A67006D6ECC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = BC5FE68D8089D29E0BCB54C1 /* Pods-swift-raft.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = VSXL9U3YDL;
 				INFOPLIST_FILE = "swift-raft/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "SALIDO.swift-raft";
@@ -436,6 +632,7 @@
 		};
 		0A4E855A1F044A67006D6ECC /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6F440210420B2BEC844768F9 /* Pods-swift-raftTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -450,6 +647,7 @@
 		};
 		0A4E855B1F044A67006D6ECC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E5C99EC9DF08E973F73BF60A /* Pods-swift-raftTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -464,6 +662,7 @@
 		};
 		0A4E855D1F044A67006D6ECC /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 55C5EBBAB80E048EB2B32B56 /* Pods-swift-raftUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				INFOPLIST_FILE = "swift-raftUITests/Info.plist";
@@ -477,6 +676,7 @@
 		};
 		0A4E855E1F044A67006D6ECC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8723AE54E6B055EDD8884910 /* Pods-swift-raftUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				INFOPLIST_FILE = "swift-raftUITests/Info.plist";
