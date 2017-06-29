@@ -10,7 +10,6 @@ import Foundation
 
 class RpcManager {
     var currentTerm: Int // server manager?
-    var commitIndex: Int? // track in log
     var cluster: Cluster?
     var socket: Socket?
     var log: Log?
