@@ -25,7 +25,7 @@ struct JsonReader {
     var success: Bool?
     var granted: Bool?
     
-    init(json: JSON) {
+    init(_ json: JSON) {
         self.type = json["type"].stringValue
         
         switch self.type {
