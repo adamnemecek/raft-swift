@@ -10,9 +10,9 @@ import Foundation
 import CocoaAsyncSocket
 
 final class SocketManager {
-    var udpUnicastSocket : GCDAsyncUdpSocket?
-    var udpMulticastSendSocket : GCDAsyncUdpSocket?
-    var udpMulticastReceiveSocket : GCDAsyncUdpSocket?
+    var udpUnicastSocket: GCDAsyncUdpSocket?
+    var udpMulticastSendSocket: GCDAsyncUdpSocket?
+    var udpMulticastReceiveSocket: GCDAsyncUdpSocket?
     
     let multicastIp = "225.1.2.3" // multicast address range 224.0.0.0 to 239.255.255.255
     
@@ -86,25 +86,23 @@ final class SocketManager {
     
     // Receive multicast and unicast
     func udpSocket(_ sock: GCDAsyncUdpSocket, didReceive data: Data, fromAddress address: Data, withFilterContext filterContext: Any?) {
-        var receivedJSON = JsonReader(JsonHelper.convertDataToJson(data))
+        var receivedJSON = JsonHelper.convertDataToJson(data)
+        let jsonReader = JsonReader(receivedJSON)
         
-        let type = receivedJSON.type
-        
-        if (type == "redirect") {
+        if (jsonReader.type == "redirect") {
             // Handle redirecting message to leader
-            let msg = receivedJSON["message"].stringValue
-            receiveClientMessage(message: msg)
-        } else if (type == "appendEntriesRequest") {
+            receiveClientMessage(message: jsonReader.message)
+        } else if (jsonReader.type == "appendEntriesRequest") {
             // Handle append entries request
             handleAppendEntriesRequest(receivedJSON: receivedJSON)
             print("received mssg omg")
-        } else if (type == "appendEntriesResponse") {
+        } else if (jsonReader.type == "appendEntriesResponse") {
             // Handle success and failure
             // Need to check if nextIndex is still less, otherwise send another appendEntries thing
             handleAppendEntriesResponse(receivedJSON: receivedJSON)
-        } else if (type == "requestVoteRequest") {
+        } else if (jsonReader.type == "requestVoteRequest") {
             handleRequestVoteRequest(receivedJSON: receivedJSON)
-        } else if (type == "requestVoteResponse") {
+        } else if (jsonReader.type == "requestVoteResponse") {
             handleRequestVoteResponse(receivedJSON: receivedJSON)
         }
     }

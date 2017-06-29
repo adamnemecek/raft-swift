@@ -17,7 +17,8 @@
 		0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85611F044D5E006D6ECC /* JsonHelper.swift */; };
 		0A4E85641F045A88006D6ECC /* JsonReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85631F045A88006D6ECC /* JsonReader.swift */; };
 		0AD71C1E1F05460500BBF8AD /* SocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C1D1F05460500BBF8AD /* SocketManager.swift */; };
-		0AD71C201F05519D00BBF8AD /* rpcManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C1F1F05519D00BBF8AD /* rpcManager.swift */; };
+		0AD71C241F0555CC00BBF8AD /* ClusterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C231F0555CC00BBF8AD /* ClusterManager.swift */; };
+		0AD71C281F05561700BBF8AD /* RpcManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C271F05561700BBF8AD /* RpcManager.swift */; };
 		17FB8CE29321B009E14B55FF /* Pods_swift_raftTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC73F0EF21B6A5C7BD2CCED7 /* Pods_swift_raftTests.framework */; };
 		1C3D0C6151423145D99555CA /* Pods_swift_raft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F5A4FDF16BF47211CC032C7 /* Pods_swift_raft.framework */; };
 		E3C666725A5C10360BC4C0F5 /* Pods_swift_raftUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF81A8AB023D21E9BBDC7944 /* Pods_swift_raftUITests.framework */; };
@@ -57,7 +58,9 @@
 		0A4E85611F044D5E006D6ECC /* JsonHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonHelper.swift; sourceTree = "<group>"; };
 		0A4E85631F045A88006D6ECC /* JsonReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonReader.swift; sourceTree = "<group>"; };
 		0AD71C1D1F05460500BBF8AD /* SocketManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SocketManager.swift; sourceTree = "<group>"; };
-		0AD71C1F1F05519D00BBF8AD /* rpcManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = rpcManager.swift; sourceTree = "<group>"; };
+		0AD71C231F0555CC00BBF8AD /* ClusterManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClusterManager.swift; sourceTree = "<group>"; };
+		0AD71C271F05561700BBF8AD /* RpcManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RpcManager.swift; sourceTree = "<group>"; };
+		0AD71C291F055C6D00BBF8AD /* Swift-Raft-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Swift-Raft-Bridging-Header.h"; sourceTree = "<group>"; };
 		55C5EBBAB80E048EB2B32B56 /* Pods-swift-raftUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftUITests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftUITests/Pods-swift-raftUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		6F440210420B2BEC844768F9 /* Pods-swift-raftTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftTests/Pods-swift-raftTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7959540ECB7654041269F5CF /* Pods-swift-raft.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raft.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raft/Pods-swift-raft.debug.xcconfig"; sourceTree = "<group>"; };
@@ -100,6 +103,7 @@
 		0A4E85251F044A67006D6ECC = {
 			isa = PBXGroup;
 			children = (
+				0AD71C291F055C6D00BBF8AD /* Swift-Raft-Bridging-Header.h */,
 				0A4E85301F044A67006D6ECC /* swift-raft */,
 				0A4E85451F044A67006D6ECC /* swift-raftTests */,
 				0A4E85501F044A67006D6ECC /* swift-raftUITests */,
@@ -130,8 +134,9 @@
 				0A4E853A1F044A67006D6ECC /* LaunchScreen.storyboard */,
 				0A4E853D1F044A67006D6ECC /* Info.plist */,
 				0A4E85631F045A88006D6ECC /* JsonReader.swift */,
+				0AD71C231F0555CC00BBF8AD /* ClusterManager.swift */,
 				0AD71C1D1F05460500BBF8AD /* SocketManager.swift */,
-				0AD71C1F1F05519D00BBF8AD /* rpcManager.swift */,
+				0AD71C271F05561700BBF8AD /* RpcManager.swift */,
 			);
 			path = "swift-raft";
 			sourceTree = "<group>";
@@ -462,8 +467,9 @@
 				0A4E85641F045A88006D6ECC /* JsonReader.swift in Sources */,
 				0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */,
 				0A4E85341F044A67006D6ECC /* ViewController.swift in Sources */,
-				0AD71C201F05519D00BBF8AD /* rpcManager.swift in Sources */,
 				0A4E85321F044A67006D6ECC /* AppDelegate.swift in Sources */,
+				0AD71C281F05561700BBF8AD /* RpcManager.swift in Sources */,
+				0AD71C241F0555CC00BBF8AD /* ClusterManager.swift in Sources */,
 				0AD71C1E1F05460500BBF8AD /* SocketManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -624,6 +630,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "SALIDO.swift-raft";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Swift-Raft-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -638,6 +645,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "SALIDO.swift-raft";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Swift-Raft-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
