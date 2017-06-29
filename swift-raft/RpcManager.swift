@@ -46,11 +46,10 @@ class RpcManager {
         } else if (role == Role.Leader) {
             // Add to log and send append entries RPC
             let jsonToStore = JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: leaderIp)
-            
-            log.append(jsonToStore)
+            log?.addEntryToLog(jsonToStore)
             updateLogTextField()
             appendEntries()
-            print("append entries called")
+            print("Called appendEntries")
         }
     }
 }
