@@ -16,9 +16,10 @@
 		0A4E85521F044A67006D6ECC /* swift_raftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85511F044A67006D6ECC /* swift_raftUITests.swift */; };
 		0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85611F044D5E006D6ECC /* JsonHelper.swift */; };
 		0A4E85641F045A88006D6ECC /* JsonReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85631F045A88006D6ECC /* JsonReader.swift */; };
-		0AD71C1E1F05460500BBF8AD /* SocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C1D1F05460500BBF8AD /* SocketManager.swift */; };
-		0AD71C241F0555CC00BBF8AD /* ClusterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C231F0555CC00BBF8AD /* ClusterManager.swift */; };
 		0AD71C281F05561700BBF8AD /* RpcManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C271F05561700BBF8AD /* RpcManager.swift */; };
+		0AD71C2D1F05725A00BBF8AD /* Cluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C2C1F05725A00BBF8AD /* Cluster.swift */; };
+		0AD71C2F1F05726200BBF8AD /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C2E1F05726200BBF8AD /* Log.swift */; };
+		0AD71C311F05730A00BBF8AD /* Socket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C301F05730A00BBF8AD /* Socket.swift */; };
 		17FB8CE29321B009E14B55FF /* Pods_swift_raftTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC73F0EF21B6A5C7BD2CCED7 /* Pods_swift_raftTests.framework */; };
 		1C3D0C6151423145D99555CA /* Pods_swift_raft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F5A4FDF16BF47211CC032C7 /* Pods_swift_raft.framework */; };
 		E3C666725A5C10360BC4C0F5 /* Pods_swift_raftUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF81A8AB023D21E9BBDC7944 /* Pods_swift_raftUITests.framework */; };
@@ -57,10 +58,11 @@
 		0A4E85531F044A67006D6ECC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0A4E85611F044D5E006D6ECC /* JsonHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonHelper.swift; sourceTree = "<group>"; };
 		0A4E85631F045A88006D6ECC /* JsonReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonReader.swift; sourceTree = "<group>"; };
-		0AD71C1D1F05460500BBF8AD /* SocketManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SocketManager.swift; sourceTree = "<group>"; };
-		0AD71C231F0555CC00BBF8AD /* ClusterManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClusterManager.swift; sourceTree = "<group>"; };
 		0AD71C271F05561700BBF8AD /* RpcManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RpcManager.swift; sourceTree = "<group>"; };
 		0AD71C291F055C6D00BBF8AD /* Swift-Raft-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Swift-Raft-Bridging-Header.h"; sourceTree = "<group>"; };
+		0AD71C2C1F05725A00BBF8AD /* Cluster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cluster.swift; sourceTree = "<group>"; };
+		0AD71C2E1F05726200BBF8AD /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		0AD71C301F05730A00BBF8AD /* Socket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Socket.swift; sourceTree = "<group>"; };
 		55C5EBBAB80E048EB2B32B56 /* Pods-swift-raftUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftUITests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftUITests/Pods-swift-raftUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		6F440210420B2BEC844768F9 /* Pods-swift-raftTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raftTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raftTests/Pods-swift-raftTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7959540ECB7654041269F5CF /* Pods-swift-raft.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-swift-raft.debug.xcconfig"; path = "Pods/Target Support Files/Pods-swift-raft/Pods-swift-raft.debug.xcconfig"; sourceTree = "<group>"; };
@@ -134,9 +136,10 @@
 				0A4E853A1F044A67006D6ECC /* LaunchScreen.storyboard */,
 				0A4E853D1F044A67006D6ECC /* Info.plist */,
 				0A4E85631F045A88006D6ECC /* JsonReader.swift */,
-				0AD71C231F0555CC00BBF8AD /* ClusterManager.swift */,
-				0AD71C1D1F05460500BBF8AD /* SocketManager.swift */,
 				0AD71C271F05561700BBF8AD /* RpcManager.swift */,
+				0AD71C301F05730A00BBF8AD /* Socket.swift */,
+				0AD71C2C1F05725A00BBF8AD /* Cluster.swift */,
+				0AD71C2E1F05726200BBF8AD /* Log.swift */,
 			);
 			path = "swift-raft";
 			sourceTree = "<group>";
@@ -465,12 +468,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				0A4E85641F045A88006D6ECC /* JsonReader.swift in Sources */,
+				0AD71C2F1F05726200BBF8AD /* Log.swift in Sources */,
 				0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */,
 				0A4E85341F044A67006D6ECC /* ViewController.swift in Sources */,
 				0A4E85321F044A67006D6ECC /* AppDelegate.swift in Sources */,
+				0AD71C311F05730A00BBF8AD /* Socket.swift in Sources */,
 				0AD71C281F05561700BBF8AD /* RpcManager.swift in Sources */,
-				0AD71C241F0555CC00BBF8AD /* ClusterManager.swift in Sources */,
-				0AD71C1E1F05460500BBF8AD /* SocketManager.swift in Sources */,
+				0AD71C2D1F05725A00BBF8AD /* Cluster.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

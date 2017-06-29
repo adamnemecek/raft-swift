@@ -1,5 +1,5 @@
 //
-//  ClusterManager.swift
+//  Cluster.swift
 //  swift-raft
 //
 //  Created by Frank the Tank on 6/29/17.
@@ -7,22 +7,19 @@
 //
 
 import Foundation
-import UIKit
 
-class ClusterManager {
+class Cluster {
     var leaderIp: String?
     var cluster: [String]
     var selfIp: String?
     var majorityCount: Int?
     
-    private init() {
+    init() {
         cluster = ["192.168.10.57", "192.168.10.58", "192.168.10.60"]
         leaderIp = "192.168.10.57"
         selfIp = getIFAddresses()[1]
         majorityCount = Int(ceil(Double(cluster.count/2)))
     }
-    
-    let shared = ClusterManager()
     
     // Get current device IP
     func getIFAddresses() -> [String] {
@@ -61,7 +58,7 @@ class ClusterManager {
         var peers = [String]()
         for server in cluster {
             if (server != selfIp) {
-               peers.append(server)
+                peers.append(server)
             }
         }
         return peers

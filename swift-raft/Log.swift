@@ -1,0 +1,54 @@
+//
+//  Log.swift
+//  swift-raft
+//
+//  Created by Frank the Tank on 6/29/17.
+//  Copyright © 2017 Frank the Tank. All rights reserved.
+//
+
+import Foundation
+import SwiftyJSON
+
+class Log {
+    var log: [JSON]
+    
+    init() {
+        log = [JSON]()
+        log.append(JsonHelper.createLogEntryJson(message: "", term: 0, leaderIp: ""))
+    }
+    
+    func addEntryToLog(_ entry: JSON) {
+        log.append(entry)
+    }
+    
+    func getLogTerm(_ index: Int) -> Int? {
+        if (index < 1 || index >= log.count) {
+            return 0
+        } else {
+            if let term = JsonReader(log[index]).term {
+                return term
+            }
+            return nil
+        }
+    }
+    
+    func getLastLogIndex() -> Int {
+        return log.count - 1
+    }
+    
+    func getLastLogTerm() -> Int? {
+        let lastLogEntry = log[getLastLogIndex()]
+        
+        if let term = JsonReader(lastLogEntry).term {
+            return term
+        }
+        
+        return nil
+    }
+    
+    func sliceAndAppend(idx: Int, entry: JSON) {
+        var logSliceArray = Array(log[0...idx - 1])
+        logSliceArray.append(entry)
+        log = logSliceArray
+    }
+}

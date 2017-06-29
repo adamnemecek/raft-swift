@@ -14,7 +14,7 @@ class JsonHelper {
         case couldNotConvertJsonToData
     }
     
-    static func createLogEntryJson(_ message: String, term: Int, leaderIp: String) -> JSON {
+    static func createLogEntryJson(message: String, term: Int, leaderIp: String) -> JSON {
         let logEntryJson: JSON = [
             "type": "entry",
             "message": message,
@@ -35,7 +35,7 @@ class JsonHelper {
         return redirectJson
     }
     
-    static func createRequestVoteRequestJson(_ candidateTerm: Int, lastLogTerm: Int, lastLogIndex: Int, sender: String) -> JSON {
+    static func createRequestVoteRequestJson(candidateTerm: Int, lastLogTerm: Int, lastLogIndex: Int, sender: String) -> JSON {
         let requestJson: JSON = [
             "type" : "requestVoteRequest",
             "candidateTerm" : candidateTerm,
@@ -47,7 +47,7 @@ class JsonHelper {
         return requestJson
     }
     
-    static func createRequestVoteResponseJson(_ term: Int, granted: Bool, sender: String) -> JSON {
+    static func createRequestVoteResponseJson(term: Int, granted: Bool, sender: String) -> JSON {
         let responseJson: JSON = [
             "type": "requestVoteResponse",
             "term": term,
@@ -58,7 +58,7 @@ class JsonHelper {
         return responseJson
     }
 
-    static func createAppendEntriesRequestJson(_ leaderIp: String, message: String, senderCurrentTerm: Int, prevLogIndex: Int, prevLogTerm: Int, leaderCommitIndex: Int) -> JSON {
+    static func createAppendEntriesRequestJson(leaderIp: String, message: String, senderCurrentTerm: Int, prevLogIndex: Int, prevLogTerm: Int, leaderCommitIndex: Int) -> JSON {
         let requestJson : JSON = [
             "type" : "appendEntriesRequest",
             "leaderIp" : leaderIp,
@@ -72,7 +72,7 @@ class JsonHelper {
         return requestJson
     }
     
-    static func createAppendEntriesResponseJson(_ success: Bool, senderCurrentTerm: Int, sender: String) -> JSON {
+    static func createAppendEntriesResponseJson(success: Bool, senderCurrentTerm: Int, sender: String) -> JSON {
         let responseJson: JSON = [
             "type" : "appendEntriesResponse",
             "success" : success,
@@ -83,13 +83,12 @@ class JsonHelper {
         return responseJson
     }
     
-    static func convertJsonToData(_ json: JSON) throws -> Data {
-        guard let jsonData = json.rawString()?.data(using: String.Encoding.utf8) else {
-            print("Couldn't create JSON")
-            throw JsonError.couldNotConvertJsonToData
+    static func convertJsonToData(_ json: JSON) -> Data? {
+        if let jsonData = json.rawString()?.data(using: String.Encoding.utf8) {
+            return jsonData
         }
         
-        return jsonData
+        return nil
     }
     
     static func convertDataToJson(_ data: Data) -> JSON {

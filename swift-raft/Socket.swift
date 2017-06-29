@@ -1,5 +1,5 @@
 //
-//  SocketManager.swift
+//  Socket.swift
 //  swift-raft
 //
 //  Created by Frank the Tank on 6/29/17.
@@ -9,30 +9,28 @@
 import Foundation
 import CocoaAsyncSocket
 
-final class SocketManager {
+class Socket {
     var udpUnicastSocket: GCDAsyncUdpSocket?
     var udpMulticastSendSocket: GCDAsyncUdpSocket?
     var udpMulticastReceiveSocket: GCDAsyncUdpSocket?
+    var sharedRpcManager: RpcManager
+    var multicastIp: String
     
-    let multicastIp = "225.1.2.3" // multicast address range 224.0.0.0 to 239.255.255.255
-    
-    var sendQueue = DispatchQueue.init(label: "send")
-    var receiveQueue = DispatchQueue.init(label: "receive")
-    var unicastQueue = DispatchQueue.init(label: "unicast")
-    // var sharedRpcManager : rpcManager
-    
-    private init() {
+    init() {
+        let sendQueue = DispatchQueue.init(label: "send")
+        let receiveQueue = DispatchQueue.init(label: "receive")
         udpMulticastSendSocket = GCDAsyncUdpSocket(delegate: self as? GCDAsyncUdpSocketDelegate, delegateQueue: sendQueue)
         udpMulticastReceiveSocket = GCDAsyncUdpSocket(delegate: self as? GCDAsyncUdpSocketDelegate, delegateQueue: receiveQueue)
         setupMulticastSockets()
         
+        let unicastQueue = DispatchQueue.init(label: "unicast")
         udpUnicastSocket = GCDAsyncUdpSocket(delegate: self as? GCDAsyncUdpSocketDelegate, delegateQueue: unicastQueue)
         setupUnicastSocket()
         
+        multicastIp = "225.1.2.3" // multicast address range 224.0.0.0 to 239.255.255.255
         
+        sharedRpcManager = RpcManager.shared
     }
-    
-    static let shared = SocketManager()
     
     func setupMulticastSockets() {
         guard let sendSocket = udpMulticastSendSocket, let receiveSocket = udpMulticastReceiveSocket else {
@@ -57,7 +55,7 @@ final class SocketManager {
             print("Couldn't setup sockets")
             return
         }
-
+        
         do {
             try socket.bind(toPort: 20011)
             try socket.beginReceiving()
@@ -75,7 +73,7 @@ final class SocketManager {
         socket.send(jsonToSend, toHost: targetHost, port: 20011, withTimeout: -1, tag: 0)
     }
     
-    func sendJsonMulticast(jsonToSend: Data) {
+    func sendJsonMulticast(_ jsonToSend: Data) {
         guard let socket = udpMulticastSendSocket else {
             print("Stuff could not be initialized")
             return
@@ -91,7 +89,11 @@ final class SocketManager {
         
         if (jsonReader.type == "redirect") {
             // Handle redirecting message to leader
-            receiveClientMessage(message: jsonReader.message)
+            guard let message = jsonReader.message else {
+                print("Couldn't get message for redirect")
+                return
+            }
+            sharedRpcManager.receiveClientMessage(message)
         } else if (jsonReader.type == "appendEntriesRequest") {
             // Handle append entries request
             handleAppendEntriesRequest(receivedJSON: receivedJSON)

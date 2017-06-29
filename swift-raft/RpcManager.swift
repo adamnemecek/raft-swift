@@ -9,7 +9,12 @@
 import Foundation
 
 class RpcManager {
-    var commitIndex: Int?
+    var currentTerm: Int // server manager?
+    var commitIndex: Int? // track in log
+    var cluster: Cluster?
+    var socket: Socket?
+    var log: Log?
+    var role = Role.Follower
     
     enum Role {
         case Follower
@@ -18,43 +23,30 @@ class RpcManager {
     }
     
     private init() {
-        
+        cluster = Cluster()
+        socket = Socket()
+        log = Log()
+        currentTerm = 1
     }
     
     static let shared = RpcManager()
     
-    func receiveClientMessage() {
-        guard let leaderIp = leaderIp else {
+    func receiveClientMessage(_ message: String) {
+        guard let leaderIp = cluster?.leaderIp else {
             print("No leader IP")
             return
         }
-        print("inside receiveclientmessage")
-        if (role == FOLLOWER || role == CANDIDATE || leaderIp != getIFAddresses()[1]) {
+        print("Received a client message")
+        
+        if (role == Role.Follower || role == Role.Candidate || leaderIp != cluster?.selfIp) {
             // Redirect request to leader
-            let jsonToSend : JSON = [
-                "type" : "redirect",
-                "address" : leaderIp,
-                "message" : message,
-                "from" : getIFAddresses()[1],
-                "currentTerm" : currentTerm
-            ]
-            
-            guard let jsonData = jsonToSend.rawString()?.data(using: String.Encoding.utf8) else {
-                print("Couldn't create JSON or get leader IP")
-                return
+            if let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createRedirectMessageJson(message)) {
+                socket?.sendJsonUnicast(jsonToSend: jsonToSend, targetHost: leaderIp)
             }
-            print("TEARDRIOS")
-            print(leaderIp)
-            
-            sendJsonUnicast(jsonToSend: jsonData, targetHost: leaderIp)
-        } else if (role == LEADER) {
+        } else if (role == Role.Leader) {
             // Add to log and send append entries RPC
-            let jsonToStore : JSON = [
-                "type" : "entry",
-                "term" : currentTerm,
-                "message" : message,
-                "leaderIp" : leaderIp,
-                ]
+            let jsonToStore = JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: leaderIp)
+            
             log.append(jsonToStore)
             updateLogTextField()
             appendEntries()
