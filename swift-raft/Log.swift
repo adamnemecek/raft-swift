@@ -11,10 +11,13 @@ import SwiftyJSON
 
 class Log {
     var log: [JSON]
-    
+    var commitIndex: Int
+    var lastAppliedIndex: Int
     init() {
         log = [JSON]()
         log.append(JsonHelper.createLogEntryJson(message: "", term: 0, leaderIp: ""))
+        commitIndex = 0
+        lastAppliedIndex = 0
     }
     
     func addEntryToLog(_ entry: JSON) {
