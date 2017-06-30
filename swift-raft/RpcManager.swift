@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftyJSON
 
 class RpcManager {
     var currentTerm: Int // server manager?
@@ -49,6 +50,15 @@ class RpcManager {
             updateLogTextField()
             appendEntries()
             print("Called appendEntries")
+        }
+    }
+    
+    func appendEntries() {
+        guard let peers = cluster?.getPeers(), let leaderIp = cluster?.leaderIp else {
+            print("Couldn't get peers to send entries to")
+        }
+        for server in peers {
+            
         }
     }
 }

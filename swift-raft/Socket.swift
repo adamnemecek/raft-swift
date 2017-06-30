@@ -17,6 +17,9 @@ class Socket {
     var multicastIp: String
     
     init() {
+        sharedRpcManager = RpcManager.shared
+        multicastIp = "225.1.2.3" // multicast address range 224.0.0.0 to 239.255.255.255
+        
         let sendQueue = DispatchQueue.init(label: "send")
         let receiveQueue = DispatchQueue.init(label: "receive")
         udpMulticastSendSocket = GCDAsyncUdpSocket(delegate: self as? GCDAsyncUdpSocketDelegate, delegateQueue: sendQueue)
@@ -25,11 +28,7 @@ class Socket {
         
         let unicastQueue = DispatchQueue.init(label: "unicast")
         udpUnicastSocket = GCDAsyncUdpSocket(delegate: self as? GCDAsyncUdpSocketDelegate, delegateQueue: unicastQueue)
-        setupUnicastSocket()
-        
-        multicastIp = "225.1.2.3" // multicast address range 224.0.0.0 to 239.255.255.255
-        
-        sharedRpcManager = RpcManager.shared
+        setupUnicastSocket()        
     }
     
     func setupMulticastSockets() {
@@ -96,16 +95,16 @@ class Socket {
             sharedRpcManager.receiveClientMessage(message)
         } else if (jsonReader.type == "appendEntriesRequest") {
             // Handle append entries request
-            handleAppendEntriesRequest(receivedJSON: receivedJSON)
+//            handleAppendEntriesRequest(receivedJSON: receivedJSON)
             print("received mssg omg")
         } else if (jsonReader.type == "appendEntriesResponse") {
             // Handle success and failure
             // Need to check if nextIndex is still less, otherwise send another appendEntries thing
-            handleAppendEntriesResponse(receivedJSON: receivedJSON)
+//            handleAppendEntriesResponse(receivedJSON: receivedJSON)
         } else if (jsonReader.type == "requestVoteRequest") {
-            handleRequestVoteRequest(receivedJSON: receivedJSON)
+//            handleRequestVoteRequest(receivedJSON: receivedJSON)
         } else if (jsonReader.type == "requestVoteResponse") {
-            handleRequestVoteResponse(receivedJSON: receivedJSON)
+//            handleRequestVoteResponse(receivedJSON: receivedJSON)
         }
     }
 }
