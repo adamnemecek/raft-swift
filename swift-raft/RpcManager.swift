@@ -11,8 +11,6 @@ import SwiftyJSON
 import CocoaAsyncSocket
 
 class RpcManager {
-    // MARK: RPC Manager Variables
-    
     var currentTerm: Int
     var cluster: Cluster
     var nextIndex: NextIndex

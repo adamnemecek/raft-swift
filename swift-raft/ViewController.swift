@@ -7,19 +7,30 @@
 //
 
 import UIKit
+import Stevia
 
 class ViewController: UIViewController {
-
+    var logTextView = UITextView()
+    var inputTextField = UITextField()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        title = "Swift Raft"
+        logTextView.text = "fuck me"
+        inputTextField.text = "yes"
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        logTextView.height(400)
+        view.sv([logTextView, inputTextField])
+        view.layout(
+            0,
+            |-0-logTextView-0-|,
+            10,
+            |-0-inputTextField-0-|,
+            0
+        )
     }
-
 
 }
-
