@@ -16,8 +16,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Swift Raft"
-        logTextView.text = "fuck me"
-        inputTextField.text = "yes"
+        logTextView.text = "log log log"
+        inputTextField.text = "some input"
     }
 
     override func viewWillLayoutSubviews() {
