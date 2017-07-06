@@ -9,16 +9,16 @@
 import Foundation
 
 class Cluster {
-    var leaderIp: String?
+    var leaderIp: String
     var cluster: [String]
     var selfIp: String?
-    var majorityCount: Int?
+    var majorityCount: Int
     
     init() {
         cluster = ["192.168.10.57", "192.168.10.58", "192.168.10.60"]
         leaderIp = "192.168.10.57"
-        selfIp = getIFAddresses()[1]
         majorityCount = Int(ceil(Double(cluster.count/2)))
+        selfIp = getIFAddresses()[1]
     }
     
     // Get current device IP

@@ -35,6 +35,10 @@ class Log {
         }
     }
     
+    func getLogMessage(_ index: Int) -> String? {
+        return JsonReader(log[index]).message
+    }
+    
     func getLastLogIndex() -> Int {
         return log.count - 1
     }

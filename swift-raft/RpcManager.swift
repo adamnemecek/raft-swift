@@ -12,10 +12,11 @@ import CocoaAsyncSocket
 
 class RpcManager {
     // MARK: RPC Manager Variables
-    var currentTerm: Int // server manager?
-    var cluster: Cluster?
-    var socket: Socket?
-    var log: Log?
+    
+    var currentTerm: Int
+    var cluster: Cluster
+    var nextIndex: NextIndex
+    var log: Log
     var role = Role.Follower
     
     enum Role {
@@ -25,6 +26,7 @@ class RpcManager {
     }
     
     // MARK: Socket Variables
+    
     var udpUnicastSocket: GCDAsyncUdpSocket?
     
     // MARK: Initialize RpcManager Singleton
@@ -32,6 +34,7 @@ class RpcManager {
     private init() {
         // Initialize RpcManager variables
         cluster = Cluster()
+        nextIndex = NextIndex(cluster)
         log = Log()
         currentTerm = 1
         
@@ -82,7 +85,7 @@ class RpcManager {
             receiveClientMessage(message)
         } else if (jsonReader.type == "appendEntriesRequest") {
             // Handle append entries request
-            //            handleAppendEntriesRequest(receivedJSON: receivedJSON)
+//            handleAppendEntriesRequest(receivedJSON: receivedJSON)
         } else if (jsonReader.type == "appendEntriesResponse") {
             // Handle success and failure
             // Need to check if nextIndex is still less, otherwise send another appendEntries thing
@@ -97,31 +100,40 @@ class RpcManager {
     // MARK: Handle RPC Methods
     
     func receiveClientMessage(_ message: String) {
-        guard let leaderIp = cluster?.leaderIp else {
-            print("No leader IP")
-            return
-        }
+        let leaderIp = cluster.leaderIp
         
         if (role == Role.Leader) {
             // Add to log and send append entries RPC
             let jsonToStore = JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: leaderIp)
-            log?.addEntryToLog(jsonToStore)
-            updateLogTextField()
+            log.addEntryToLog(jsonToStore)
             appendEntries()
         } else {
             // Redirect request to leader
             if let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createRedirectMessageJson(message)) {
-                socket?.sendJsonUnicast(jsonToSend: jsonToSend, targetHost: leaderIp)
+                sendJsonUnicast(jsonToSend: jsonToSend, targetHost: leaderIp)
             }
         }
     }
     
     func appendEntries() {
-        guard let peers = cluster?.getPeers(), let leaderIp = cluster?.leaderIp else {
-            print("Couldn't get peers to send entries to")
-        }
-        for server in peers {
+        for server in cluster.getPeers() {
+            guard let nextIdx = nextIndex.getNextIndex(server) else {
+                return
+            }
             
+            let prevLogIdx = nextIdx - 1
+            
+            guard let prevLogTerm = log.getLogTerm(prevLogIdx), let message = log.getLogMessage(nextIdx) else {
+                print("Could not get previous log term and message")
+                return
+            }
+            
+            guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: message, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex)) else {
+                print("Could not create json to send")
+                return
+            }
+            
+            sendJsonUnicast(jsonToSend: jsonToSend, targetHost: server)
         }
     }
 }

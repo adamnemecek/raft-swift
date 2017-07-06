@@ -9,5 +9,21 @@
 import Foundation
 
 class NextIndex {
-
+    var nextIndex: [String : Int]
+    
+    init(_ cluster: Cluster) {
+        nextIndex = [String : Int]()
+        for server in cluster.getPeers() {
+            nextIndex[server] = 1
+        }
+    }
+    
+    func getNextIndex(_ server: String) -> Int? {
+        guard let index = nextIndex[server] else {
+            print("Problem getting next index")
+            return nil
+        }
+        
+        return index
+    }
 }
