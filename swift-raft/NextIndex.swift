@@ -26,4 +26,8 @@ class NextIndex {
         
         return index
     }
+    
+    func setNextIndex(server: String, index: Int) {
+        nextIndex[server] = index
+    }
 }

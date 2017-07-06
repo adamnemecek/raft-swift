@@ -24,6 +24,7 @@ struct JsonReader {
     var leaderCommitIndex: Int?
     var success: Bool?
     var granted: Bool?
+    var matchIndex: Int?
     
     init(_ json: JSON) {
         self.type = json["type"].stringValue
@@ -55,6 +56,7 @@ struct JsonReader {
             self.success = json["success"].boolValue
             self.senderCurrentTerm = json["senderCurrentTerm"].intValue
             self.sender = json["sender"].stringValue
+            self.matchIndex = json["matchIndex"].intValue
         default: break
         }
     }

@@ -37,11 +37,11 @@ class JsonHelper {
     
     static func createRequestVoteRequestJson(candidateTerm: Int, lastLogTerm: Int, lastLogIndex: Int, sender: String) -> JSON {
         let requestJson: JSON = [
-            "type" : "requestVoteRequest",
-            "candidateTerm" : candidateTerm,
-            "lastLogTerm" : lastLogTerm,
-            "lastLogIndex" : lastLogIndex,
-            "sender" : sender
+            "type": "requestVoteRequest",
+            "candidateTerm": candidateTerm,
+            "lastLogTerm": lastLogTerm,
+            "lastLogIndex": lastLogIndex,
+            "sender": sender
         ]
         
         return requestJson
@@ -60,24 +60,25 @@ class JsonHelper {
 
     static func createAppendEntriesRequestJson(leaderIp: String, message: String, senderCurrentTerm: Int, prevLogIndex: Int, prevLogTerm: Int, leaderCommitIndex: Int) -> JSON {
         let requestJson : JSON = [
-            "type" : "appendEntriesRequest",
-            "leaderIp" : leaderIp,
-            "message" : message,
-            "senderCurrentTerm" : senderCurrentTerm,
-            "prevLogIndex" : prevLogIndex,
-            "prevLogTerm" : prevLogTerm,
-            "leaderCommitIndex" : leaderCommitIndex
+            "type": "appendEntriesRequest",
+            "leaderIp": leaderIp,
+            "message": message,
+            "senderCurrentTerm": senderCurrentTerm,
+            "prevLogIndex": prevLogIndex,
+            "prevLogTerm": prevLogTerm,
+            "leaderCommitIndex": leaderCommitIndex
         ]
         
         return requestJson
     }
     
-    static func createAppendEntriesResponseJson(success: Bool, senderCurrentTerm: Int, sender: String) -> JSON {
+    static func createAppendEntriesResponseJson(success: Bool, senderCurrentTerm: Int, sender: String, matchIndex: Int) -> JSON {
         let responseJson: JSON = [
-            "type" : "appendEntriesResponse",
-            "success" : success,
-            "senderCurrentTerm" : senderCurrentTerm,
-            "sender" : sender
+            "type": "appendEntriesResponse",
+            "success": success,
+            "senderCurrentTerm": senderCurrentTerm,
+            "sender": sender,
+            "matchIndex": matchIndex
         ]
         
         return responseJson

@@ -16,6 +16,7 @@ class RpcManager {
     var currentTerm: Int
     var cluster: Cluster
     var nextIndex: NextIndex
+    var matchIndex: MatchIndex
     var log: Log
     var votedFor: String?
     var role = Role.Follower
@@ -36,6 +37,7 @@ class RpcManager {
         // Initialize RpcManager variables
         cluster = Cluster()
         nextIndex = NextIndex(cluster)
+        matchIndex = MatchIndex(cluster)
         log = Log()
         votedFor = nil
         currentTerm = 1
@@ -91,7 +93,7 @@ class RpcManager {
         } else if (jsonReader.type == "appendEntriesResponse") {
             // Handle success and failure
             // Need to check if nextIndex is still less, otherwise send another appendEntries thing
-            //            handleAppendEntriesResponse(receivedJSON: receivedJSON)
+                handleAppendEntriesResponse(readJson: jsonReader)
         } else if (jsonReader.type == "requestVoteRequest") {
             //            handleRequestVoteRequest(receivedJSON: receivedJSON)
         } else if (jsonReader.type == "requestVoteResponse") {
@@ -161,7 +163,7 @@ class RpcManager {
         }
         
         if (currentTerm > senderTerm) {
-            guard let response = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesResponseJson(success: false, senderCurrentTerm: currentTerm, sender: selfIp)) else {
+            guard let response = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesResponseJson(success: false, senderCurrentTerm: currentTerm, sender: selfIp, matchIndex: 0)) else {
                 print("Fail to create response")
                 return
             }
@@ -209,7 +211,7 @@ class RpcManager {
                 }
             }
             
-            guard let response = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesResponseJson(success: success, senderCurrentTerm: currentTerm, sender: selfIp)) else {
+            guard let response = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesResponseJson(success: success, senderCurrentTerm: currentTerm, sender: selfIp, matchIndex: idx)) else {
                 print("Fail to create response")
                 return
             }
@@ -218,5 +220,23 @@ class RpcManager {
         }
     }
     
-    
+    func handleAppendEntriesResponse(readJson: JsonReader) {
+        guard let senderTerm = readJson.senderCurrentTerm, let success = readJson.success, let index = readJson.matchIndex, let sender = readJson.sender else {
+            print("Failed to initialize proper variables")
+            return
+        }
+        let nextIdx = index + 1
+        if (currentTerm < senderTerm) {
+            stepDown(term: senderTerm)
+        } else if (role == Role.Leader && currentTerm == senderTerm) {
+            if (success) {
+                matchIndex.setMatchIndex(server: sender, index: index)
+                nextIndex.setNextIndex(server: sender, index: nextIdx)
+                
+                if (log.getLastLogIndex() >= nextIdx) {
+                    
+                }
+            }
+        }
+    }
 }
