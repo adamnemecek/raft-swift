@@ -58,4 +58,8 @@ class Log {
         logSliceArray.append(entry)
         log = logSliceArray
     }
+    
+    func updateCommitIndex(_ idx: Int) {
+        commitIndex = idx
+    }
 }

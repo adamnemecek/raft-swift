@@ -192,7 +192,20 @@ class RpcManager {
                     return
                 }
                 if (term != senderTerm) {
-                    // TODO: Figure out logic and implement rest of entries request
+                    guard let message = readJson.message else {
+                        print("Fail to get message")
+                        return
+                    }
+                    log.sliceAndAppend(idx: idx, entry: JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: cluster.leaderIp))
+                    
+                    guard let senderCommitIndex = readJson.leaderCommitIndex else {
+                        print("Fail to get leader commit index")
+                        return
+                    }
+                    
+                    if (senderCommitIndex > log.commitIndex) {
+                        log.updateCommitIndex(min(senderCommitIndex, idx))
+                    }
                 }
             }
             
@@ -204,4 +217,6 @@ class RpcManager {
             sendJsonUnicast(jsonToSend: response, targetHost: cluster.leaderIp)
         }
     }
+    
+    
 }
