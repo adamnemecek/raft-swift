@@ -103,8 +103,32 @@ class RpcManager {
     
     // MARK: Handle RPC Methods
     
-    func stepDown(term: Int) {
+    func becomeFollower() {
         role = Role.Follower
+    }
+    
+    func becomeCandidate() {
+        role = Role.Candidate
+    }
+    
+    func becomeLeader() {
+        role = Role.Leader
+    }
+    
+    func isFollower() -> Bool {
+        return role == Role.Follower
+    }
+    
+    func isCandidate() -> Bool {
+        return role == Role.Candidate
+    }
+    
+    func isLeader() -> Bool {
+        return role == Role.Leader
+    }
+    
+    func stepDown(term: Int) {
+        becomeFollower()
         currentTerm = term
         votedFor = nil
     }
@@ -112,7 +136,7 @@ class RpcManager {
     func receiveClientMessage(_ message: String) {
         let leaderIp = cluster.leaderIp
         
-        if (role == Role.Leader) {
+        if (isLeader()) {
             // Add to log and send append entries RPC
             let jsonToStore = JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: leaderIp)
             log.addEntryToLog(jsonToStore)
@@ -170,7 +194,7 @@ class RpcManager {
             sendJsonUnicast(jsonToSend: response, targetHost: rpcSender)
         } else {
             cluster.updateLeaderIp(rpcSender)
-            role = Role.Follower
+            becomeFollower()
             guard let prevLogIdx = readJson.prevLogIndex, let prevLogTerm = readJson.prevLogTerm else {
                 print("Error with previous log index or term")
                 return
@@ -220,6 +244,27 @@ class RpcManager {
         }
     }
     
+    func sendAppendEntriesRequest(_ nextIdx: Int, _ sender: String) {
+        let prevLogIdx = nextIdx - 1
+        let prevLogTerm = 0
+        if (prevLogIdx >= 0) {
+            guard let prevLogTerm = log.getLogTerm(prevLogIdx) else {
+                print("Fail to get log term")
+                return
+            }
+        }
+        guard let sendMessage = log.getLogMessage(nextIdx) else {
+            print("Failed to get message")
+            return
+        }
+        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: sendMessage, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex)) else {
+            print("Failed to create json data")
+            return
+        }
+        
+        sendJsonUnicast(jsonToSend: jsonToSend, targetHost: sender)
+    }
+    
     func handleAppendEntriesResponse(readJson: JsonReader) {
         guard let senderTerm = readJson.senderCurrentTerm, let success = readJson.success, let index = readJson.matchIndex, let sender = readJson.sender else {
             print("Failed to initialize proper variables")
@@ -228,13 +273,24 @@ class RpcManager {
         let nextIdx = index + 1
         if (currentTerm < senderTerm) {
             stepDown(term: senderTerm)
-        } else if (role == Role.Leader && currentTerm == senderTerm) {
+        } else if (isLeader() && currentTerm == senderTerm) {
             if (success) {
                 matchIndex.setMatchIndex(server: sender, index: index)
                 nextIndex.setNextIndex(server: sender, index: nextIdx)
                 
                 if (log.getLastLogIndex() >= nextIdx) {
-                    
+                    sendAppendEntriesRequest(nextIdx, sender)
+                }
+            } else {
+                guard let currentNextIndex = nextIndex.getNextIndex(sender) else {
+                    print("Failed to get next index")
+                    return
+                }
+                let nextIdx = max(1, currentNextIndex - 1)
+                nextIndex.setNextIndex(server: sender, index: nextIdx)
+                
+                if (log.getLastLogIndex() >= nextIdx) {
+                    sendAppendEntriesRequest(nextIdx, sender)
                 }
             }
         }
