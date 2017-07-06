@@ -17,6 +17,7 @@ class RpcManager {
     var cluster: Cluster
     var nextIndex: NextIndex
     var log: Log
+    var votedFor: String?
     var role = Role.Follower
     
     enum Role {
@@ -36,6 +37,7 @@ class RpcManager {
         cluster = Cluster()
         nextIndex = NextIndex(cluster)
         log = Log()
+        votedFor = nil
         currentTerm = 1
         
         // Initialize Socket variables
@@ -73,8 +75,8 @@ class RpcManager {
     
     // Receive UDP packets
     func udpSocket(_ sock: GCDAsyncUdpSocket, didReceive data: Data, fromAddress address: Data, withFilterContext filterContext: Any?) {
-        let receivedJSON = JsonHelper.convertDataToJson(data)
-        let jsonReader = JsonReader(receivedJSON)
+        let receivedJson = JsonHelper.convertDataToJson(data)
+        let jsonReader = JsonReader(receivedJson)
         
         if (jsonReader.type == "redirect") {
             // Handle redirecting message to leader
@@ -85,7 +87,7 @@ class RpcManager {
             receiveClientMessage(message)
         } else if (jsonReader.type == "appendEntriesRequest") {
             // Handle append entries request
-//            handleAppendEntriesRequest(receivedJSON: receivedJSON)
+            handleAppendEntriesRequest(readJson: jsonReader)
         } else if (jsonReader.type == "appendEntriesResponse") {
             // Handle success and failure
             // Need to check if nextIndex is still less, otherwise send another appendEntries thing
@@ -98,6 +100,12 @@ class RpcManager {
     }
     
     // MARK: Handle RPC Methods
+    
+    func stepDown(term: Int) {
+        role = Role.Follower
+        currentTerm = term
+        votedFor = nil
+    }
     
     func receiveClientMessage(_ message: String) {
         let leaderIp = cluster.leaderIp
@@ -134,6 +142,66 @@ class RpcManager {
             }
             
             sendJsonUnicast(jsonToSend: jsonToSend, targetHost: server)
+        }
+    }
+    
+    func handleAppendEntriesRequest(readJson: JsonReader) {
+        guard let senderTerm = readJson.senderCurrentTerm, let selfIp = cluster.selfIp else {
+            print("Couldn't get sender term or self ip")
+            return
+        }
+        
+        if (currentTerm < senderTerm) {
+            stepDown(term: senderTerm)
+        }
+        
+        guard let rpcSender = readJson.sender else {
+            print("No sender")
+            return
+        }
+        
+        if (currentTerm > senderTerm) {
+            guard let response = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesResponseJson(success: false, senderCurrentTerm: currentTerm, sender: selfIp)) else {
+                print("Fail to create response")
+                return
+            }
+            sendJsonUnicast(jsonToSend: response, targetHost: rpcSender)
+        } else {
+            cluster.updateLeaderIp(rpcSender)
+            role = Role.Follower
+            guard let prevLogIdx = readJson.prevLogIndex, let prevLogTerm = readJson.prevLogTerm else {
+                print("Error with previous log index or term")
+                return
+            }
+            var success = false
+            if (prevLogIdx == 0 || prevLogIdx <= log.getLastLogIndex()) {
+                guard let term = log.getLogTerm(prevLogIdx) else {
+                    print("Fail to get term")
+                    return
+                }
+                if (prevLogTerm == term) {
+                    success = true
+                }
+            }
+            var idx = 0
+            
+            if (success) {
+                idx = prevLogIdx + 1
+                guard let term = log.getLogTerm(idx) else {
+                    print("Fail to get term")
+                    return
+                }
+                if (term != senderTerm) {
+                    // TODO: Figure out logic and implement rest of entries request
+                }
+            }
+            
+            guard let response = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesResponseJson(success: success, senderCurrentTerm: currentTerm, sender: selfIp)) else {
+                print("Fail to create response")
+                return
+            }
+            
+            sendJsonUnicast(jsonToSend: response, targetHost: cluster.leaderIp)
         }
     }
 }
