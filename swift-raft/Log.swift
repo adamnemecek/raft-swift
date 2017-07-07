@@ -35,6 +35,18 @@ class Log {
         }
     }
     
+    func getLogEntriesString() -> String? {
+        var returnString = ""
+        for (index, element) in log.enumerated() {
+            guard let message = getLogMessage(index) else {
+                print("Failed to get message")
+                return nil
+            }
+            returnString = returnString + " " + message
+        }
+        return returnString
+    }
+    
     func getLogMessage(_ index: Int) -> String? {
         return JsonReader(log[index]).message
     }
