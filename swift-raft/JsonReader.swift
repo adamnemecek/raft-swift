@@ -52,6 +52,7 @@ struct JsonReader {
             self.prevLogIndex = json["prevLogIndex"].intValue
             self.prevLogTerm = json["prevLogTerm"].intValue
             self.leaderCommitIndex = json["leaderCommitIndex"].intValue
+            self.sender = json["sender"].stringValue
         case "appendEntriesResponse":
             self.success = json["success"].boolValue
             self.senderCurrentTerm = json["senderCurrentTerm"].intValue

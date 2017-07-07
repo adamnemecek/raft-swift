@@ -58,7 +58,7 @@ class JsonHelper {
         return responseJson
     }
 
-    static func createAppendEntriesRequestJson(leaderIp: String, message: String, senderCurrentTerm: Int, prevLogIndex: Int, prevLogTerm: Int, leaderCommitIndex: Int) -> JSON {
+    static func createAppendEntriesRequestJson(leaderIp: String, message: String, senderCurrentTerm: Int, prevLogIndex: Int, prevLogTerm: Int, leaderCommitIndex: Int, sender: String) -> JSON {
         let requestJson : JSON = [
             "type": "appendEntriesRequest",
             "leaderIp": leaderIp,
@@ -66,7 +66,8 @@ class JsonHelper {
             "senderCurrentTerm": senderCurrentTerm,
             "prevLogIndex": prevLogIndex,
             "prevLogTerm": prevLogTerm,
-            "leaderCommitIndex": leaderCommitIndex
+            "leaderCommitIndex": leaderCommitIndex,
+            "sender": sender
         ]
         
         return requestJson

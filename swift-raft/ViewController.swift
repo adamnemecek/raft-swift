@@ -10,7 +10,7 @@ import UIKit
 import SwiftyJSON
 import CocoaAsyncSocket
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     // MARK: RPC Manager Variables
     
     var currentTerm = 1
@@ -43,10 +43,13 @@ class ViewController: UIViewController {
         nextIndex = NextIndex(cluster)
         matchIndex = MatchIndex(cluster)
         votedFor = nil
+        if (cluster.leaderIp == cluster.selfIp) {
+            becomeLeader()
+        }
         
         // Initialize Socket variables
         let unicastQueue = DispatchQueue.init(label: "unicast")
-        udpUnicastSocket = GCDAsyncUdpSocket(delegate: self as? GCDAsyncUdpSocketDelegate, delegateQueue: unicastQueue)
+        udpUnicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: unicastQueue)
         setupUnicastSocket()
     }
 
@@ -193,7 +196,8 @@ class ViewController: UIViewController {
     
     func appendEntries() {
         for server in cluster.getPeers() {
-            guard let nextIdx = nextIndex?.getNextIndex(server) else {
+            guard let nextIdx = nextIndex?.getNextIndex(server), let selfIp = cluster.selfIp else {
+                print("No self ip")
                 return
             }
             
@@ -204,7 +208,7 @@ class ViewController: UIViewController {
                 return
             }
             
-            guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: message, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex)) else {
+            guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: message, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex, sender: selfIp)) else {
                 print("Could not create json to send")
                 return
             }
@@ -289,18 +293,19 @@ class ViewController: UIViewController {
     
     func sendAppendEntriesRequest(_ nextIdx: Int, _ sender: String) {
         let prevLogIdx = nextIdx - 1
-        let prevLogTerm = 0
+        var prevLogTerm = 0
         if (prevLogIdx >= 0) {
-            guard let prevLogTerm = log.getLogTerm(prevLogIdx) else {
-                print("Fail to get log term")
+            guard let term = log.getLogTerm(prevLogIdx) else {
+                print("Couldn't get term")
                 return
             }
+            prevLogTerm = term
         }
-        guard let sendMessage = log.getLogMessage(nextIdx) else {
+        guard let sendMessage = log.getLogMessage(nextIdx), let selfIp = cluster.selfIp else {
             print("Failed to get message")
             return
         }
-        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: sendMessage, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex)) else {
+        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: sendMessage, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex, sender: selfIp)) else {
             print("Failed to create json data")
             return
         }
