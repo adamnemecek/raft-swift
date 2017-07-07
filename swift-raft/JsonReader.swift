@@ -25,6 +25,7 @@ struct JsonReader {
     var success: Bool?
     var granted: Bool?
     var matchIndex: Int?
+    var peer: String?
     
     init(_ json: JSON) {
         self.type = json["type"].stringValue
@@ -58,6 +59,8 @@ struct JsonReader {
             self.senderCurrentTerm = json["senderCurrentTerm"].intValue
             self.sender = json["sender"].stringValue
             self.matchIndex = json["matchIndex"].intValue
+        case "userInfo":
+            self.peer = json["peer"].stringValue
         default: break
         }
     }

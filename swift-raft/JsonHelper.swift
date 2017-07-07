@@ -85,6 +85,15 @@ class JsonHelper {
         return responseJson
     }
     
+    static func createUserInfo(peer: String) -> JSON {
+        let userInfo: JSON = [
+            "type": "userInfo",
+            "peer": peer
+        ]
+        
+        return userInfo
+    }
+    
     static func convertJsonToData(_ json: JSON) -> Data? {
         if let jsonData = json.rawString()?.data(using: String.Encoding.utf8) {
             return jsonData
