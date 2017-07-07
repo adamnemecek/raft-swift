@@ -354,12 +354,11 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             print("Failed to get next index for peer")
             return
         }
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
         let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat: " + nextIdx.description, term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
     func sendHeartbeat(timer : Timer) {
