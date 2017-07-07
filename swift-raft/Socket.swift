@@ -83,7 +83,7 @@ class Socket {
     
     // Receive multicast and unicast
     func udpSocket(_ sock: GCDAsyncUdpSocket, didReceive data: Data, fromAddress address: Data, withFilterContext filterContext: Any?) {
-        var receivedJSON = JsonHelper.convertDataToJson(data)
+        let receivedJSON = JsonHelper.convertDataToJson(data)
         let jsonReader = JsonReader(receivedJSON)
         
         if (jsonReader.type == "redirect") {

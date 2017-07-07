@@ -37,7 +37,7 @@ class Log {
     
     func getLogEntriesString() -> String? {
         var returnString = ""
-        for (index, element) in log.enumerated() {
+        for (index, _) in log.enumerated() {
             guard let message = getLogMessage(index) else {
                 print("Failed to get message")
                 return nil
