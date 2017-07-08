@@ -393,7 +393,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     func resetElectionTimer() {
         electionTimer?.invalidate()
         electionTimer = nil
-        electionTimer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.electionTimeout), userInfo: nil, repeats: true)
+        startElectionTimer()
     }
     
     func electionTimeout() {
