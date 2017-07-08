@@ -21,7 +21,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     var votedFor: String?
     var role = Role.Follower
     var rpcDue = [String : Timer]()
-
+    var electionTimer: Timer?
     enum Role {
         case Follower
         case Candidate
@@ -44,14 +44,14 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         nextIndex = NextIndex(cluster)
         matchIndex = MatchIndex(cluster)
         votedFor = nil
-        if (cluster.leaderIp == cluster.selfIp) {
-            becomeLeader()
-        }
-        
+        startElectionTimer()
         // Initialize Socket variables
         let unicastQueue = DispatchQueue.init(label: "unicast")
         udpUnicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: unicastQueue)
         setupUnicastSocket()
+        if (cluster.leaderIp == cluster.selfIp) {
+            becomeLeader()
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -179,6 +179,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         becomeFollower()
         currentTerm = term
         votedFor = nil
+        resetElectionTimer()
     }
     
     func receiveClientMessage(_ message: String) {
@@ -245,6 +246,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         } else {
             cluster.updateLeaderIp(rpcSender)
             becomeFollower()
+            resetElectionTimer()
             guard let prevLogIdx = readJson.prevLogIndex, let prevLogTerm = readJson.prevLogTerm else {
                 print("Error with previous log index or term")
                 return
@@ -360,7 +362,8 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 7, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        sendAppendEntriesRequest(nextIdx, peer)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
     func sendHeartbeat(timer : Timer) {
@@ -379,7 +382,22 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         let userInfo = JsonHelper.createUserInfo(peer: peer)
         rpcDue[peer]?.invalidate()
         rpcDue[peer] = nil
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 7, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        print(rpcDue[peer]?.isValid)
+    }
+    
+    func startElectionTimer() {
+        electionTimer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.electionTimeout), userInfo: nil, repeats: true)
+    }
+    
+    func resetElectionTimer() {
+        electionTimer?.invalidate()
+        electionTimer = nil
+        electionTimer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.electionTimeout), userInfo: nil, repeats: true)
+    }
+    
+    func electionTimeout() {
+        print(cluster.selfIp)
     }
 }
 
