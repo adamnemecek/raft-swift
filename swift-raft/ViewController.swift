@@ -216,7 +216,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                 print("Could not create json to send")
                 return
             }
-            
+            resetHeartbeatTimer(peer: server)
             sendJsonUnicast(jsonToSend: jsonToSend, targetHost: server)
         }
     }
@@ -314,6 +314,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             return
         }
         
+        resetHeartbeatTimer(peer: sender)
         sendJsonUnicast(jsonToSend: jsonToSend, targetHost: sender)
     }
     
@@ -347,6 +348,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             }
         }
     }
+
     
     func startHeartbeatTimer(peer: String) {
         let userInfo = JsonHelper.createUserInfo(peer: peer)
@@ -358,7 +360,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 7, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
     func sendHeartbeat(timer : Timer) {
@@ -371,6 +373,13 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
         sendAppendEntriesRequest(nextIdx, peer)
+    }
+    
+    func resetHeartbeatTimer(peer: String) {
+        let userInfo = JsonHelper.createUserInfo(peer: peer)
+        rpcDue[peer]?.invalidate()
+        rpcDue[peer] = nil
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 7, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
 }
 
