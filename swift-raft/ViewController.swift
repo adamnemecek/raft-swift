@@ -17,6 +17,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     var cluster = Cluster()
     var nextIndex: NextIndex?
     var matchIndex: MatchIndex?
+    var voteGranted: VoteGranted?
     var log = Log()
     var votedFor: String?
     var role = Role.Follower
@@ -43,6 +44,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         // Initialize RpcManager variables
         nextIndex = NextIndex(cluster)
         matchIndex = MatchIndex(cluster)
+        voteGranted = VoteGranted(cluster)
         votedFor = nil
         startElectionTimer()
         // Initialize Socket variables
@@ -149,6 +151,15 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     
     // MARK: Handle RPC Methods
+    
+    func resetTermVariables() {
+        nextIndex = nil
+        nextIndex = NextIndex(cluster)
+        matchIndex = nil
+        matchIndex = MatchIndex(cluster)
+        voteGranted = nil
+        voteGranted = VoteGranted(cluster)
+    }
     
     func becomeFollower() {
         role = Role.Follower
@@ -413,8 +424,49 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     func electionTimeout() {
         print(cluster.selfIp)
         DispatchQueue.main.async {
-            self.roleLabel.text = "asdfasdf"
+            self.roleLabel.text = "Timeout Role Label"
+        }
+        switch role {
+        case Role.Follower:
+            startElection()
+        case Role.Candidate:
+            startElection()
+        case Role.Leader: break
         }
     }
+    
+    func startElection() {
+        resetElectionTimer()
+        currentTerm = currentTerm + 1
+        resetTermVariables()
+        becomeCandidate()
+        guard let selfIp = cluster.selfIp else {
+            print("Failed to get self IP")
+            return
+        }
+        voteGranted?.grantVote(server: selfIp)
+        votedFor = selfIp
+        requestVotes()
+    }
+    
+    func requestVotes() {
+        guard let selfIp = cluster.selfIp else {
+            print("Failed to get selfIp")
+            return
+        }
+        let lastLogIndex = log.getLastLogIndex()
+        guard let lastLogTerm = log.getLogTerm(lastLogIndex) else {
+            print("Failed to get last log term")
+            return
+        }
+        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createRequestVoteRequestJson(candidateTerm: currentTerm, lastLogTerm: lastLogTerm, lastLogIndex: lastLogIndex, sender: selfIp)) else {
+            print("Failed to create json to send")
+            return
+        }
+        for server in cluster.getPeers() {
+            sendJsonUnicast(jsonToSend: jsonToSend, targetHost: server)
+        }
+    }
+    
 }
 
