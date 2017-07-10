@@ -106,7 +106,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             // Need to check if nextIndex is still less, otherwise send another appendEntries thing
             handleAppendEntriesResponse(readJson: jsonReader)
         } else if (jsonReader.type == "requestVoteRequest") {
-            //            handleRequestVoteRequest(receivedJSON: receivedJSON)
+            handleRequestVoteRequest(readJson: jsonReader)
         } else if (jsonReader.type == "requestVoteResponse") {
             //            handleRequestVoteResponse(receivedJSON: receivedJSON)
         }
@@ -468,5 +468,37 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         }
     }
     
+    func handleRequestVoteRequest(readJson: JsonReader) {
+        guard let candidateTerm = readJson.candidateTerm, let lastLogTerm = readJson.lastLogTerm, let lastLogIndex = readJson.lastLogIndex, let sender = readJson.sender, let selfIp = cluster.selfIp else {
+            print("Failed to get requestVote variables")
+            return
+        }
+        
+        if (currentTerm < candidateTerm) {
+            stepDown(term: candidateTerm)
+        }
+        
+        var granted = false
+        if (currentTerm == candidateTerm) {
+            if (votedFor == nil || votedFor == sender) {
+                guard let selfLastLogTerm = log.getLogTerm(log.getLastLogIndex()) else {
+                    print("Couldn't get last log term")
+                    return
+                }
+                if (lastLogTerm >= selfLastLogTerm) {
+                    if (lastLogIndex >= log.getLastLogIndex()) {
+                        granted = true
+                        votedFor = sender
+                        resetElectionTimer()
+                    }
+                }
+            }
+        }
+        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createRequestVoteResponseJson(term: currentTerm, granted: granted, sender: selfIp)) else {
+            print("Failed to create json to send")
+            return
+        }
+        sendJsonUnicast(jsonToSend: jsonToSend, targetHost: sender)
+    }
 }
 
