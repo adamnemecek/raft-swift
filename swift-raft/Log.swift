@@ -42,7 +42,9 @@ class Log {
                 print("Failed to get message")
                 return nil
             }
-            returnString = returnString + " " + message
+            if (message != "Heartbeat") {
+                returnString = returnString + " " + message
+            }
         }
         return returnString
     }

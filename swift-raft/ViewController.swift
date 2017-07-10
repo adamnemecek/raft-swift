@@ -17,10 +17,13 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     var cluster = Cluster()
     var nextIndex: NextIndex?
     var matchIndex: MatchIndex?
+    var voteGranted: VoteGranted?
     var log = Log()
     var votedFor: String?
     var role = Role.Follower
-
+    var rpcDue = [String : Timer]()
+    var electionTimer = Timer()
+    var electionTimeoutSeconds = 7
     enum Role {
         case Follower
         case Candidate
@@ -42,15 +45,16 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         // Initialize RpcManager variables
         nextIndex = NextIndex(cluster)
         matchIndex = MatchIndex(cluster)
+        voteGranted = VoteGranted(cluster)
         votedFor = nil
-        if (cluster.leaderIp == cluster.selfIp) {
-            becomeLeader()
-        }
-        
+        startElectionTimer()
         // Initialize Socket variables
         let unicastQueue = DispatchQueue.init(label: "unicast")
         udpUnicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: unicastQueue)
         setupUnicastSocket()
+        if (cluster.selfIp == "192.168.10.58") {
+            electionTimeoutSeconds = 5
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -103,14 +107,21 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             // Need to check if nextIndex is still less, otherwise send another appendEntries thing
             handleAppendEntriesResponse(readJson: jsonReader)
         } else if (jsonReader.type == "requestVoteRequest") {
-            //            handleRequestVoteRequest(receivedJSON: receivedJSON)
+            handleRequestVoteRequest(readJson: jsonReader)
         } else if (jsonReader.type == "requestVoteResponse") {
-            //            handleRequestVoteResponse(receivedJSON: receivedJSON)
+            handleRequestVoteResponse(readJson: jsonReader)
         }
     }
     
     // MARK: Update UI Methods
     
+    @IBAction func pressButton(_ sender: Any) {
+        print("Is Valid: " + electionTimer.isValid.description)
+        print("FireDate: " + electionTimer.fireDate.description)
+        print("Date: " + Date().description)
+        print("LeaderIP: " + cluster.leaderIp)
+        print("CurrentTerm: " + currentTerm.description )
+    }
     @IBAction func editInputField(_ sender: Any) {
         guard let msg = inputTextField.text else {
             print("No message")
@@ -144,7 +155,17 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     // MARK: Handle RPC Methods
     
+    func resetTermVariables() {
+        nextIndex = nil
+        nextIndex = NextIndex(cluster)
+        matchIndex = nil
+        matchIndex = MatchIndex(cluster)
+        voteGranted = nil
+        voteGranted = VoteGranted(cluster)
+    }
+    
     func becomeFollower() {
+        stopHeartbeatTimers()
         role = Role.Follower
         updateRoleLabel()
     }
@@ -156,7 +177,17 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     func becomeLeader() {
         role = Role.Leader
+        guard let selfIp = cluster.selfIp else {
+            print("Failed to get selfIp")
+            return
+        }
+        cluster.leaderIp = selfIp
         updateRoleLabel()
+        stopHeartbeatTimers()
+        for peer in cluster.getPeers() {
+            nextIndex?.setNextIndex(server: peer, index: log.getLastLogIndex())
+            startHeartbeatTimer(peer: peer)
+        }
     }
     
     func isFollower() -> Bool {
@@ -175,6 +206,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         becomeFollower()
         currentTerm = term
         votedFor = nil
+        resetElectionTimer()
     }
     
     func receiveClientMessage(_ message: String) {
@@ -203,22 +235,22 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             
             let prevLogIdx = nextIdx - 1
             
-            guard let prevLogTerm = log.getLogTerm(prevLogIdx), let message = log.getLogMessage(nextIdx) else {
+            guard let prevLogTerm = log.getLogTerm(prevLogIdx), let message = log.getLogMessage(nextIdx), let logEntryTerm = log.getLogTerm(nextIdx) else {
                 print("Could not get previous log term and message")
                 return
             }
             
-            guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: message, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex, sender: selfIp)) else {
+            guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: message, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex, sender: selfIp, logEntryTerm: logEntryTerm)) else {
                 print("Could not create json to send")
                 return
             }
-            
+            resetHeartbeatTimer(peer: server)
             sendJsonUnicast(jsonToSend: jsonToSend, targetHost: server)
         }
     }
     
     func handleAppendEntriesRequest(readJson: JsonReader) {
-        guard let senderTerm = readJson.senderCurrentTerm, let selfIp = cluster.selfIp else {
+        guard let senderTerm = readJson.senderCurrentTerm, let selfIp = cluster.selfIp, let logEntryTerm = readJson.logEntryTerm else {
             print("Couldn't get sender term or self ip")
             return
         }
@@ -241,6 +273,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         } else {
             cluster.updateLeaderIp(rpcSender)
             becomeFollower()
+            resetElectionTimer()
             guard let prevLogIdx = readJson.prevLogIndex, let prevLogTerm = readJson.prevLogTerm else {
                 print("Error with previous log index or term")
                 return
@@ -263,12 +296,12 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                     print("Fail to get term")
                     return
                 }
-                if (term != senderTerm) {
+                if (term != logEntryTerm) {
                     guard let message = readJson.message else {
                         print("Fail to get message")
                         return
                     }
-                    log.sliceAndAppend(idx: idx, entry: JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: cluster.leaderIp))
+                    log.sliceAndAppend(idx: idx, entry: JsonHelper.createLogEntryJson(message: message, term: logEntryTerm, leaderIp: cluster.leaderIp))
                     updateLogTextField()
                     
                     guard let senderCommitIndex = readJson.leaderCommitIndex else {
@@ -301,15 +334,17 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             }
             prevLogTerm = term
         }
-        guard let sendMessage = log.getLogMessage(nextIdx), let selfIp = cluster.selfIp else {
+        guard let sendMessage = log.getLogMessage(nextIdx), let selfIp = cluster.selfIp, let logEntryTerm = log.getLogTerm(nextIdx) else {
             print("Failed to get message")
             return
         }
-        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: sendMessage, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex, sender: selfIp)) else {
+        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createAppendEntriesRequestJson(leaderIp: cluster.leaderIp, message: sendMessage, senderCurrentTerm: currentTerm, prevLogIndex: prevLogIdx, prevLogTerm: prevLogTerm, leaderCommitIndex: log.commitIndex, sender: selfIp, logEntryTerm: logEntryTerm)) else {
             print("Failed to create json data")
             return
         }
-        
+        if (!(sendMessage.range(of: "Heartbeat") != nil)) {
+            resetHeartbeatTimer(peer: sender)
+        }
         sendJsonUnicast(jsonToSend: jsonToSend, targetHost: sender)
     }
     
@@ -341,6 +376,174 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                     sendAppendEntriesRequest(nextIdx, sender)
                 }
             }
+        }
+    }
+
+    
+    func startHeartbeatTimer(peer: String) {
+        let userInfo = JsonHelper.createUserInfo(peer: peer)
+        guard let nextIdx = nextIndex?.getNextIndex(peer) else {
+            print("Failed to get next index for peer")
+            return
+        }
+        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
+        
+        log.addEntryToLog(heartbeatEntry)
+        updateLogTextField()
+        sendAppendEntriesRequest(nextIdx, peer)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+    }
+    
+    func sendHeartbeat(timer : Timer) {
+        guard let peer = JsonReader((timer.userInfo as? JSON)!).peer, let nextIdx = nextIndex?.getNextIndex(peer) else {
+            print("Failed to get peer from timer or next index")
+            return
+        }
+        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
+        
+        log.addEntryToLog(heartbeatEntry)
+        updateLogTextField()
+        sendAppendEntriesRequest(nextIdx, peer)
+    }
+    
+    func resetHeartbeatTimer(peer: String) {
+        let userInfo = JsonHelper.createUserInfo(peer: peer)
+        rpcDue[peer]?.invalidate()
+        rpcDue[peer] = nil
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        print("reset heartbeat timer")
+    }
+    
+    func stopHeartbeatTimers() {
+        for server in cluster.getPeers() {
+            if (rpcDue[server] != nil) {
+                rpcDue[server]?.invalidate()
+                rpcDue[server] = nil
+            }
+        }
+    }
+    
+    func startElectionTimer() {
+        electionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(electionTimeoutSeconds), target: self, selector: #selector(self.electionTimeout), userInfo: nil, repeats: true)
+    }
+    
+    func resetElectionTimer() {
+        DispatchQueue.main.async {
+            self.electionTimer.invalidate()
+            self.startElectionTimer()
+        }
+    }
+    
+    func electionTimeout() {
+        switch role {
+        case Role.Follower:
+            startElection()
+        case Role.Candidate:
+            startElection()
+        case Role.Leader:
+            print("Leader does nothing in timeout")
+        }
+    }
+    
+    func startElection() {
+        if (isFollower() || isCandidate()) {
+            resetElectionTimer()
+            currentTerm = currentTerm + 1
+            resetTermVariables()
+            becomeCandidate()
+            guard let selfIp = cluster.selfIp else {
+                print("Failed to get self IP")
+                return
+            }
+            voteGranted?.grantVote(server: selfIp)
+            votedFor = selfIp
+            guard let voteCount = voteGranted?.getVoteCount() else {
+                print("Failed to get vote count")
+                return
+            }
+            if (voteCount >= cluster.majorityCount) {
+                becomeLeader()
+            } else {
+                requestVotes()
+            }
+        }
+    }
+    
+    func requestVotes() {
+        if (isCandidate()) {
+            guard let selfIp = cluster.selfIp else {
+                print("Failed to get selfIp")
+                return
+            }
+            let lastLogIndex = log.getLastLogIndex()
+            guard let lastLogTerm = log.getLogTerm(lastLogIndex) else {
+                print("Failed to get last log term")
+                return
+            }
+            guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createRequestVoteRequestJson(candidateTerm: currentTerm, lastLogTerm: lastLogTerm, lastLogIndex: lastLogIndex, sender: selfIp)) else {
+                print("Failed to create json to send")
+                return
+            }
+            for server in cluster.getPeers() {
+                sendJsonUnicast(jsonToSend: jsonToSend, targetHost: server)
+            }
+        }
+    }
+    
+    func handleRequestVoteRequest(readJson: JsonReader) {
+        guard let candidateTerm = readJson.candidateTerm, let lastLogTerm = readJson.lastLogTerm, let lastLogIndex = readJson.lastLogIndex, let sender = readJson.sender, let selfIp = cluster.selfIp else {
+            print("Failed to get requestVote variables")
+            return
+        }
+        
+        if (currentTerm < candidateTerm) {
+            stepDown(term: candidateTerm)
+        }
+        
+        var granted = false
+        if (currentTerm == candidateTerm) {
+            if (votedFor == nil || votedFor == sender) {
+                guard let selfLastLogTerm = log.getLogTerm(log.getLastLogIndex()) else {
+                    print("Couldn't get last log term")
+                    return
+                }
+                if (lastLogTerm >= selfLastLogTerm) {
+                    if (lastLogIndex >= log.getLastLogIndex()) {
+                        granted = true
+                        votedFor = sender
+                        resetElectionTimer()
+                    }
+                }
+            }
+        }
+        guard let jsonToSend = JsonHelper.convertJsonToData(JsonHelper.createRequestVoteResponseJson(term: currentTerm, granted: granted, sender: selfIp)) else {
+            print("Failed to create json to send")
+            return
+        }
+        sendJsonUnicast(jsonToSend: jsonToSend, targetHost: sender)
+    }
+    
+    func handleRequestVoteResponse(readJson: JsonReader) {
+        guard let term = readJson.term, let granted = readJson.granted, let sender = readJson.sender else {
+            print("Failed to get requestVote variables")
+            return
+        }
+        
+        if (currentTerm < term) {
+            stepDown(term: term)
+        }
+        
+        if (isCandidate() && currentTerm == term && granted) {
+            voteGranted?.grantVote(server: sender)
+        }
+        
+        guard let voteCount = voteGranted?.getVoteCount() else {
+            print("Failed to get vote count")
+            return
+        }
+        
+        if (voteCount >= cluster.majorityCount) {
+            becomeLeader()
         }
     }
 }
