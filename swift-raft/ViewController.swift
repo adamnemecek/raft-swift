@@ -118,6 +118,8 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         print("Is Valid: " + electionTimer.isValid.description)
         print("FireDate: " + electionTimer.fireDate.description)
         print("Date: " + Date().description)
+        print("LeaderIP: " + cluster.leaderIp)
+        print("CurrentTerm: " + currentTerm.description )
     }
     @IBAction func editInputField(_ sender: Any) {
         guard let msg = inputTextField.text else {
@@ -162,6 +164,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     }
     
     func becomeFollower() {
+        stopHeartbeatTimers()
         role = Role.Follower
         updateRoleLabel()
     }
@@ -173,6 +176,11 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     func becomeLeader() {
         role = Role.Leader
+        guard let selfIp = cluster.selfIp else {
+            print("Failed to get selfIp")
+            return
+        }
+        cluster.leaderIp = selfIp
         updateRoleLabel()
         for peer in cluster.getPeers() {
             startHeartbeatTimer(peer: peer)
@@ -397,9 +405,14 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     func resetHeartbeatTimer(peer: String) {
         let userInfo = JsonHelper.createUserInfo(peer: peer)
         rpcDue[peer]?.invalidate()
-        rpcDue[peer] = nil
         rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
         print(rpcDue[peer]?.isValid)
+    }
+    
+    func stopHeartbeatTimers() {
+        for server in cluster.getPeers() {
+            rpcDue[server]?.invalidate()
+        }
     }
     
     func startElectionTimer() {
@@ -411,14 +424,14 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             self.electionTimer.invalidate()
             self.startElectionTimer()
         }
-        let comparison = electionTimer.fireDate.compare(Date())
-        guard comparison != .orderedAscending else {
-            print("Date is all messed up")
-            print("Date: " + Date().description)
-            print("FireDate: " + electionTimer.fireDate.description)
-            resetElectionTimer()
-            return
-        }
+//        let comparison = electionTimer.fireDate.compare(Date())
+//        guard comparison != .orderedAscending else {
+//            print("Date is all messed up")
+//            print("Date: " + Date().description)
+//            print("FireDate: " + electionTimer.fireDate.description)
+//            resetElectionTimer()
+//            return
+//        }
     }
     
     func electionTimeout() {
@@ -446,7 +459,15 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         }
         voteGranted?.grantVote(server: selfIp)
         votedFor = selfIp
-        requestVotes()
+        guard let voteCount = voteGranted?.getVoteCount() else {
+            print("Failed to get vote count")
+            return
+        }
+        if (voteCount >= cluster.majorityCount) {
+            becomeLeader()
+        } else {
+            requestVotes()
+        }
     }
     
     func requestVotes() {
@@ -499,6 +520,30 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             return
         }
         sendJsonUnicast(jsonToSend: jsonToSend, targetHost: sender)
+    }
+    
+    func handleRequestVoteResponse(readJson: JsonReader) {
+        guard let term = readJson.term, let granted = readJson.granted, let sender = readJson.sender else {
+            print("Failed to get requestVote variables")
+            return
+        }
+        
+        if (currentTerm < term) {
+            stepDown(term: term)
+        }
+        
+        if (isCandidate() && currentTerm == term && granted) {
+            voteGranted?.grantVote(server: sender)
+        }
+        
+        guard let voteCount = voteGranted?.getVoteCount() else {
+            print("Failed to get vote count")
+            return
+        }
+        
+        if (voteCount >= cluster.majorityCount) {
+            becomeLeader()
+        }
     }
 }
 
