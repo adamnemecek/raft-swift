@@ -43,14 +43,23 @@
                                     <action selector="editInputField:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="Zln-by-HXP"/>
                                 </connections>
                             </textField>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ajZ-Ij-gfL">
+                                <rect key="frame" x="123" y="102" width="46" height="30"/>
+                                <state key="normal" title="PrintStuff"/>
+                                <connections>
+                                    <action selector="pressButton:" destination="BYZ-38-t0r" eventType="touchUpInside" id="L3L-Fb-UqV"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="UHd-vc-bCZ" secondAttribute="trailing" constant="341" id="558-ft-HPz"/>
                             <constraint firstItem="xOw-Fj-WFt" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="143" id="Iqg-rO-P6b"/>
+                            <constraint firstItem="ajZ-Ij-gfL" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="82" id="SnA-K0-8MF"/>
                             <constraint firstItem="mYy-9T-GCK" firstAttribute="top" secondItem="UHd-vc-bCZ" secondAttribute="bottom" constant="69" id="Z7L-41-POG"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="mYy-9T-GCK" secondAttribute="bottom" constant="548" id="kes-RK-2SL"/>
                             <constraint firstAttribute="trailingMargin" secondItem="mYy-9T-GCK" secondAttribute="trailing" constant="244" id="lGc-4j-jpZ"/>
+                            <constraint firstItem="xOw-Fj-WFt" firstAttribute="leading" secondItem="ajZ-Ij-gfL" secondAttribute="trailing" constant="194" id="rr7-wQ-r90"/>
                             <constraint firstAttribute="trailingMargin" secondItem="xOw-Fj-WFt" secondAttribute="trailing" constant="351" id="uqe-SK-jUL"/>
                             <constraint firstItem="mYy-9T-GCK" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="244" id="xg5-yG-nHc"/>
                             <constraint firstItem="UHd-vc-bCZ" firstAttribute="top" secondItem="xOw-Fj-WFt" secondAttribute="bottom" constant="65" id="zNR-Ej-eB0"/>

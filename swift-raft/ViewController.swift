@@ -21,7 +21,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     var votedFor: String?
     var role = Role.Follower
     var rpcDue = [String : Timer]()
-    var electionTimer: Timer?
+    var electionTimer = Timer()
     enum Role {
         case Follower
         case Candidate
@@ -112,6 +112,11 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     // MARK: Update UI Methods
     
+    @IBAction func pressButton(_ sender: Any) {
+        print("Is Valid: " + electionTimer.isValid.description)
+        print("FireDate: " + electionTimer.fireDate.description)
+        print("Date: " + Date().description)
+    }
     @IBAction func editInputField(_ sender: Any) {
         guard let msg = inputTextField.text else {
             print("No message")
@@ -391,13 +396,25 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     }
     
     func resetElectionTimer() {
-        electionTimer?.invalidate()
-        electionTimer = nil
-        startElectionTimer()
+        DispatchQueue.main.async {
+            self.electionTimer.invalidate()
+            self.startElectionTimer()
+        }
+        let comparison = electionTimer.fireDate.compare(Date())
+        guard comparison != .orderedAscending else {
+            print("Date is all messed up")
+            print("Date: " + Date().description)
+            print("FireDate: " + electionTimer.fireDate.description)
+            resetElectionTimer()
+            return
+        }
     }
     
     func electionTimeout() {
         print(cluster.selfIp)
+        DispatchQueue.main.async {
+            self.roleLabel.text = "asdfasdf"
+        }
     }
 }
 

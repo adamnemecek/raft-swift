@@ -6,17 +6,49 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "swift-raft/ViewController.swift"
-            timestampString = "521174140.531715"
+            timestampString = "521411156.444238"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "400"
-            endingLineNumber = "400"
-            landmarkName = "electionTimeout()"
+            startingLineNumber = "201"
+            endingLineNumber = "201"
+            landmarkName = "receiveClientMessage(_:)"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "swift_raft.ViewController.receiveClientMessage (Swift.String) -&gt; ()"
+                  moduleName = "swift-raft"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/frankyliang/Desktop/swift-raft/swift-raft/ViewController.swift"
+                  timestampString = "521414354.394468"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "201"
+                  endingLineNumber = "201"
+                  offsetFromSymbolStart = "792">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "swift_raft.ViewController.receiveClientMessage (Swift.String) -&gt; ()"
+                  moduleName = "swift-raft"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/frankyliang/Desktop/swift-raft/swift-raft/ViewController.swift"
+                  timestampString = "521414354.395854"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "201"
+                  endingLineNumber = "201"
+                  offsetFromSymbolStart = "956">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
