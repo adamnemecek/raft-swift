@@ -140,6 +140,16 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         print("LeaderIP: " + cluster.leaderIp)
         print("CurrentTerm: " + currentTerm.description )
         print("SelfIP: " + cluster.selfIp!)
+        
+//        DispatchQueue.main.async {
+//            if (self.raftView.disconnect.titleLabel?.text == "Disconnect") {
+//                self.raftView.disconnect.titleLabel?.text = "Connect"
+//                self.udpUnicastSocket?.close()
+//            } else {
+//                self.raftView.disconnect.titleLabel?.text = "Disconnect"
+//                self.setupUnicastSocket()
+//            }
+//        }
     }
     
     func flashSendHeartbeat() {
