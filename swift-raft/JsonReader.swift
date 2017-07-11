@@ -26,6 +26,7 @@ struct JsonReader {
     var granted: Bool?
     var matchIndex: Int?
     var peer: String?
+    var logEntryTerm: Int?
     
     init(_ json: JSON) {
         self.type = json["type"].stringValue
@@ -54,6 +55,7 @@ struct JsonReader {
             self.prevLogTerm = json["prevLogTerm"].intValue
             self.leaderCommitIndex = json["leaderCommitIndex"].intValue
             self.sender = json["sender"].stringValue
+            self.logEntryTerm = json["logEntryTerm"].intValue
         case "appendEntriesResponse":
             self.success = json["success"].boolValue
             self.senderCurrentTerm = json["senderCurrentTerm"].intValue
