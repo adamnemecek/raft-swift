@@ -25,6 +25,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     var role = Role.Follower
     var rpcDue = [String : Timer]()
     var electionTimer = Timer()
+    var decrementTimer = Timer()
     var electionTimeoutSeconds = 12
     var heartbeatTimeoutSeconds = 2
     enum Role {
@@ -52,14 +53,17 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         matchIndex = MatchIndex(cluster)
         voteGranted = VoteGranted(cluster)
         votedFor = nil
-        startElectionTimer()
         // Initialize Socket variables
         let unicastQueue = DispatchQueue.init(label: "unicast")
         udpUnicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: unicastQueue)
         setupUnicastSocket()
         if (cluster.selfIp == "192.168.10.58") {
             electionTimeoutSeconds = 9
+            raftView.electionTimer.text = "9"
+        } else {
+            raftView.electionTimer.text = "12"
         }
+        startElectionTimer()
         
         // Selectors for view elements
         updateLogTableView()
@@ -517,11 +521,34 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     
     func startElectionTimer() {
         electionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(electionTimeoutSeconds), target: self, selector: #selector(self.electionTimeout), userInfo: nil, repeats: true)
+        raftView.electionTimer.text = electionTimeoutSeconds.description
+        startDecrementTimer()
+    }
+    
+    func startDecrementTimer() {
+        decrementTimer.invalidate()
+        decrementTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.decrementTimerLabel), userInfo: nil, repeats: true)
+    }
+    
+    func decrementTimerLabel() {
+        DispatchQueue.main.async {
+            guard let text = self.raftView.electionTimer.text else {
+                print("No election timer text")
+                return
+            }
+            guard var seconds = Int(text) else {
+                print("Int conversion fail")
+                return
+            }
+            seconds = seconds - 1
+            self.raftView.electionTimer.text = seconds.description
+        }
     }
     
     func resetElectionTimer() {
         DispatchQueue.main.async {
             self.electionTimer.invalidate()
+            self.raftView.electionTimer.text = self.electionTimeoutSeconds.description
             self.startElectionTimer()
         }
     }
@@ -536,6 +563,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
             startElection()
         case Role.Leader:
             print("Leader does nothing in timeout")
+            resetElectionTimer()
         }
     }
     

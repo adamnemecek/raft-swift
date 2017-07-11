@@ -70,7 +70,6 @@ class RaftView: UIView {
         
         electionTimer.textAlignment = .center
         electionTimer.font = role.font.withSize(30)
-        electionTimer.text = "5"
         
         heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.gray, size: CGSize(width: 50, height: 50))
         heart.contentMode = .scaleAspectFit
