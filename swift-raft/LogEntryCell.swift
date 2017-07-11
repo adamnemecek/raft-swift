@@ -19,12 +19,17 @@ class LogEntryCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         sv(
-            message.style(messageStyle),
-            committed
+            [message.style(messageStyle),
+            committed]
         )
+        message.backgroundColor = .gray
+        committed.width(80)
+        committed.contentMode = .scaleAspectFit
         
         layout(
-            |-message-committed-|
+            0,
+            |-message-10-committed-| ~ 80,
+            0
         )
     }
     

@@ -15,8 +15,8 @@ class Cluster {
     var majorityCount: Int
     
     init() {
-        cluster = ["192.168.10.57", "192.168.10.58", "192.168.10.60"]
-//        cluster = ["192.168.10.57", "192.168.10.58"]
+//        cluster = ["192.168.10.57", "192.168.10.58", "192.168.10.60"]
+        cluster = ["192.168.10.57", "192.168.10.58"]
         leaderIp = ""
         majorityCount = Int(ceil(Double(cluster.count/2)))
         selfIp = getIFAddresses()[1]

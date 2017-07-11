@@ -41,7 +41,14 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.edgesForExtendedLayout = .init(rawValue: 0)
         // Initialize RpcManager variables
+        raftView.log.dataSource = self
+        raftView.log.delegate = self
+        raftView.state.dataSource = self
+        raftView.state.delegate = self
+        
         nextIndex = NextIndex(cluster)
         matchIndex = MatchIndex(cluster)
         voteGranted = VoteGranted(cluster)
@@ -56,10 +63,11 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         }
         
         // Selectors for view elements
-        raftView.log.dataSource = self
-        raftView.log.delegate = self
-        raftView.state.dataSource = self
-        raftView.state.delegate = self
+        updateLogTableView()
+        updateStateTableView()
+        
+        raftView.disconnect.addTarget(self, action: #selector(pressButton), for: .touchUpInside)
+        raftView.input.addTarget(self, action: #selector(editInputField), for: .editingDidEnd)
     }
 
     override func didReceiveMemoryWarning() {
@@ -132,6 +140,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         print("Date: " + Date().description)
         print("LeaderIP: " + cluster.leaderIp)
         print("CurrentTerm: " + currentTerm.description )
+        print("SelfIP: " + cluster.selfIp!)
     }
     func editInputField() {
         guard let msg = raftView.input.text else {
@@ -165,8 +174,13 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         }
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 80.0
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if (tableView == raftView.log) {
+            print(log.log.count)
             return log.log.count
         } else {
             return 3
@@ -176,13 +190,16 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if (tableView == raftView.log) {
             let logEntryCell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath as IndexPath) as! LogEntryCell
-            
-            logEntryCell.message.text = log.getLogMessage(indexPath.row)
+            guard let msg = log.getLogMessage(indexPath.row) else {
+                print("TEARS")
+                return logEntryCell
+            }
+            logEntryCell.message.text = msg
             
             if (indexPath.row <= log.commitIndex) {
-                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor.green, size: CGSize(width: 5, height: 5))
+                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor.green, size: CGSize(width: 80, height: 80))
             } else {
-                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor.green, size: CGSize(width: 5, height: 5))
+                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor.red, size: CGSize(width: 80, height: 80))
             }
             
             return logEntryCell
@@ -221,11 +238,13 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         stopHeartbeatTimers()
         role = Role.Follower
         updateRoleLabel()
+        updateStateTableView()
     }
     
     func becomeCandidate() {
         role = Role.Candidate
         updateRoleLabel()
+        updateStateTableView()
     }
     
     func becomeLeader() {
@@ -236,6 +255,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         }
         cluster.leaderIp = selfIp
         updateRoleLabel()
+        updateStateTableView()
         stopHeartbeatTimers()
         for peer in cluster.getPeers() {
             nextIndex?.setNextIndex(server: peer, index: log.getLastLogIndex())
@@ -444,7 +464,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         log.addEntryToLog(heartbeatEntry)
         updateLogTableView()
         sendAppendEntriesRequest(nextIdx, peer)
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
     func sendHeartbeat(timer : Timer) {
@@ -463,7 +483,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         let userInfo = JsonHelper.createUserInfo(peer: peer)
         rpcDue[peer]?.invalidate()
         rpcDue[peer] = nil
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
         print("reset heartbeat timer")
     }
     
@@ -516,7 +536,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
                 print("Failed to get vote count")
                 return
             }
-            if (voteCount > cluster.majorityCount) {
+            if (voteCount >= cluster.majorityCount) {
                 becomeLeader()
             } else {
                 requestVotes()

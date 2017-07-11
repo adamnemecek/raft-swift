@@ -8,6 +8,7 @@
 
 import UIKit
 import Stevia
+import FontAwesome_swift
 
 class RaftView: UIView {
     let electionTimer = UILabel()
@@ -15,7 +16,6 @@ class RaftView: UIView {
     let state = UITableView()
     let logTitle = UILabel()
     let role = UILabel()
-    let logTextView = UITextView()
     let input = UITextField()
     let heart = UIImageView()
     let disconnect = UIButton()
@@ -26,23 +26,42 @@ class RaftView: UIView {
         state.register(StateVariableCell.self, forCellReuseIdentifier: "StateVariableCell")
         
         sv(
-            role,
+            [role,
             heart,
             input,
             logTitle,
             log,
-            disconnect
+            electionTimer,
+            state,
+            disconnect]
         )
         
+        disconnect.backgroundColor = .red
+        disconnect.text("disconnect")
+        disconnect.showsTouchWhenHighlighted = true
+        
+        input.placeholder = "Input"
+        input.clearsOnBeginEditing = true
+        
+        logTitle.text = "Log"
+        
+        role.text = "Role"
+        electionTimer.text = "50"
+        heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.red, size: CGSize(width: 80, height: 80))
+        heart.contentMode = .scaleAspectFit
         layout(
             0,
-            |-role-electionTimer-heart-|,
-            5,
-            |-logTitle-|,
-            5,
-            |-0-log-0-|,
-            5,
-            |-state-disconnect-|,
+            |role-5-electionTimer-5-heart| ~ 50,
+            0,
+            |input|,
+            0,
+            |logTitle|,
+            0,
+            |log|,
+            0,
+            |disconnect|,
+            0,
+            |state| ~ 300,
             0
         )
     }
