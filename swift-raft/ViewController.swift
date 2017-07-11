@@ -9,8 +9,10 @@
 import UIKit
 import SwiftyJSON
 import CocoaAsyncSocket
+import Stevia
+import FontAwesome_swift
 
-class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
+class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDelegate, UITableViewDataSource {
     // MARK: RPC Manager Variables
     
     var currentTerm = 1
@@ -34,11 +36,8 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     var udpUnicastSocket: GCDAsyncUdpSocket?
     
-    // MARK: Storyboard Variables
-    
-    @IBOutlet weak var roleLabel: UILabel!
-    @IBOutlet weak var logTextView: UITextView!
-    @IBOutlet weak var inputTextField: UITextField!
+    // MARK: View Variables
+    var raftView = RaftView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,11 +54,23 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         if (cluster.selfIp == "192.168.10.58") {
             electionTimeoutSeconds = 9
         }
+        
+        // Selectors for view elements
+        raftView.log.dataSource = self
+        raftView.log.delegate = self
+        raftView.state.dataSource = self
+        raftView.state.delegate = self
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        view.sv([raftView])
+        raftView.fillContainer()
     }
     
     // MARK: Socket Methods
@@ -115,15 +126,15 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     // MARK: Update UI Methods
     
-    @IBAction func pressButton(_ sender: Any) {
+    func pressButton() {
         print("Is Valid: " + electionTimer.isValid.description)
         print("FireDate: " + electionTimer.fireDate.description)
         print("Date: " + Date().description)
         print("LeaderIP: " + cluster.leaderIp)
         print("CurrentTerm: " + currentTerm.description )
     }
-    @IBAction func editInputField(_ sender: Any) {
-        guard let msg = inputTextField.text else {
+    func editInputField() {
+        guard let msg = raftView.input.text else {
             print("No message")
             return
         }
@@ -133,25 +144,67 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     func updateRoleLabel() {
         DispatchQueue.main.async {
             if (self.isFollower()) {
-                self.roleLabel.text = "Follower"
+                self.raftView.role.text = "Follower"
             } else if (self.isCandidate()) {
-                self.roleLabel.text = "Candidate"
+                self.raftView.role.text = "Candidate"
             } else {
-                self.roleLabel.text = "Leader"
+                self.raftView.role.text = "Leader"
             }
         }
     }
     
-    func updateLogTextField() {
+    func updateLogTableView() {
         DispatchQueue.main.async {
-            guard let logString = self.log.getLogEntriesString() else {
-                print("Failed to get log entries as a string")
-                return
-            }
-            self.logTextView.text = logString
+            self.raftView.log.reloadData()
         }
     }
     
+    func updateStateTableView() {
+        DispatchQueue.main.async {
+            self.raftView.state.reloadData()
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if (tableView == raftView.log) {
+            return log.log.count
+        } else {
+            return 3
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if (tableView == raftView.log) {
+            let logEntryCell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath as IndexPath) as! LogEntryCell
+            
+            logEntryCell.message.text = log.getLogMessage(indexPath.row)
+            
+            if (indexPath.row <= log.commitIndex) {
+                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor.green, size: CGSize(width: 5, height: 5))
+            } else {
+                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor.green, size: CGSize(width: 5, height: 5))
+            }
+            
+            return logEntryCell
+        } else {
+            let stateVariableCell = tableView.dequeueReusableCell(withIdentifier: "StateVariableCell", for: indexPath as IndexPath) as! StateVariableCell
+            switch indexPath.row {
+            case 0:
+                stateVariableCell.stateVariableName.text = "Current Term: "
+                stateVariableCell.stateVariableValue.text = currentTerm.description
+            case 1:
+                stateVariableCell.stateVariableName.text = "Voted For: "
+                stateVariableCell.stateVariableValue.text = votedFor?.description
+            case 2:
+                stateVariableCell.stateVariableName.text = "Commit Index: "
+                stateVariableCell.stateVariableValue.text = log.commitIndex.description
+            default:
+                stateVariableCell.stateVariableName.text = "Weird case"
+                stateVariableCell.stateVariableValue.text = "Tears"
+            }
+            return stateVariableCell
+        }
+    }
     
     // MARK: Handle RPC Methods
     
@@ -216,7 +269,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             // Add to log and send append entries RPC
             let jsonToStore = JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: leaderIp)
             log.addEntryToLog(jsonToStore)
-            updateLogTextField()
+            updateLogTableView()
             appendEntries()
         } else {
             // Redirect request to leader
@@ -302,7 +355,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                         return
                     }
                     log.sliceAndAppend(idx: idx, entry: JsonHelper.createLogEntryJson(message: message, term: logEntryTerm, leaderIp: cluster.leaderIp))
-                    updateLogTextField()
+                    updateLogTableView()
                     
                     guard let senderCommitIndex = readJson.leaderCommitIndex else {
                         print("Fail to get leader commit index")
@@ -389,7 +442,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
-        updateLogTextField()
+        updateLogTableView()
         sendAppendEntriesRequest(nextIdx, peer)
         rpcDue[peer] = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
@@ -402,7 +455,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
-        updateLogTextField()
+        updateLogTableView()
         sendAppendEntriesRequest(nextIdx, peer)
     }
     

@@ -17,6 +17,9 @@
 		0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85611F044D5E006D6ECC /* JsonHelper.swift */; };
 		0A4E85641F045A88006D6ECC /* JsonReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E85631F045A88006D6ECC /* JsonReader.swift */; };
 		0AB046B71F142FD300DC5FA5 /* VoteGranted.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB046B61F142FD300DC5FA5 /* VoteGranted.swift */; };
+		0AB046B91F153D7300DC5FA5 /* RaftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB046B81F153D7300DC5FA5 /* RaftView.swift */; };
+		0AB046BB1F15402400DC5FA5 /* LogEntryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB046BA1F15402400DC5FA5 /* LogEntryCell.swift */; };
+		0AB046BD1F15471800DC5FA5 /* StateVariableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB046BC1F15471800DC5FA5 /* StateVariableCell.swift */; };
 		0AD469291F0DB78A006064C4 /* NextIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD469281F0DB78A006064C4 /* NextIndex.swift */; };
 		0AD4692B1F0EC999006064C4 /* MatchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD4692A1F0EC999006064C4 /* MatchIndex.swift */; };
 		0AD71C2D1F05725A00BBF8AD /* Cluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD71C2C1F05725A00BBF8AD /* Cluster.swift */; };
@@ -60,6 +63,9 @@
 		0A4E85611F044D5E006D6ECC /* JsonHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonHelper.swift; sourceTree = "<group>"; };
 		0A4E85631F045A88006D6ECC /* JsonReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonReader.swift; sourceTree = "<group>"; };
 		0AB046B61F142FD300DC5FA5 /* VoteGranted.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VoteGranted.swift; sourceTree = "<group>"; };
+		0AB046B81F153D7300DC5FA5 /* RaftView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RaftView.swift; sourceTree = "<group>"; };
+		0AB046BA1F15402400DC5FA5 /* LogEntryCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogEntryCell.swift; sourceTree = "<group>"; };
+		0AB046BC1F15471800DC5FA5 /* StateVariableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateVariableCell.swift; sourceTree = "<group>"; };
 		0AD469281F0DB78A006064C4 /* NextIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NextIndex.swift; sourceTree = "<group>"; };
 		0AD4692A1F0EC999006064C4 /* MatchIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MatchIndex.swift; sourceTree = "<group>"; };
 		0AD71C291F055C6D00BBF8AD /* Swift-Raft-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Swift-Raft-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -143,6 +149,9 @@
 				0AD469281F0DB78A006064C4 /* NextIndex.swift */,
 				0AD4692A1F0EC999006064C4 /* MatchIndex.swift */,
 				0AB046B61F142FD300DC5FA5 /* VoteGranted.swift */,
+				0AB046B81F153D7300DC5FA5 /* RaftView.swift */,
+				0AB046BA1F15402400DC5FA5 /* LogEntryCell.swift */,
+				0AB046BC1F15471800DC5FA5 /* StateVariableCell.swift */,
 			);
 			path = "swift-raft";
 			sourceTree = "<group>";
@@ -473,12 +482,15 @@
 				0AD4692B1F0EC999006064C4 /* MatchIndex.swift in Sources */,
 				0A4E85641F045A88006D6ECC /* JsonReader.swift in Sources */,
 				0AD71C2F1F05726200BBF8AD /* Log.swift in Sources */,
+				0AB046B91F153D7300DC5FA5 /* RaftView.swift in Sources */,
 				0A4E85621F044D5E006D6ECC /* JsonHelper.swift in Sources */,
+				0AB046BD1F15471800DC5FA5 /* StateVariableCell.swift in Sources */,
 				0A4E85341F044A67006D6ECC /* ViewController.swift in Sources */,
 				0AB046B71F142FD300DC5FA5 /* VoteGranted.swift in Sources */,
 				0A4E85321F044A67006D6ECC /* AppDelegate.swift in Sources */,
 				0AD469291F0DB78A006064C4 /* NextIndex.swift in Sources */,
 				0AD71C2D1F05725A00BBF8AD /* Cluster.swift in Sources */,
+				0AB046BB1F15402400DC5FA5 /* LogEntryCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
