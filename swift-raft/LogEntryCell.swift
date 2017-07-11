@@ -22,7 +22,8 @@ class LogEntryCell: UITableViewCell {
             [message.style(messageStyle),
             committed]
         )
-        message.backgroundColor = .gray
+//        message.backgroundColor = .gray
+        
         committed.width(80)
         committed.contentMode = .scaleAspectFit
         
@@ -35,6 +36,7 @@ class LogEntryCell: UITableViewCell {
     
     func messageStyle(l:UILabel) {
         l.font = .systemFont(ofSize: 24)
-        l.textColor = .blue
+        l.textColor = .black
+        l.textAlignment = .center
     }
 }

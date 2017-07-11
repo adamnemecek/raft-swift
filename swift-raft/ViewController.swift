@@ -153,7 +153,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     
     func flashReceiveHeartbeat() {
         DispatchQueue.main.async {
-            self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.blue, size: CGSize(width: 50, height: 50))
+            self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor(red: 0, green: 0.4392, blue: 0.1804, alpha: 1.0) /* #00702e */      , size: CGSize(width: 50, height: 50))
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
                 self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.gray, size: CGSize(width: 50, height: 50))
             })
@@ -219,9 +219,9 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         logEntryCell.message.text = msg
         
         if (indexPath.row <= log.commitIndex) {
-            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor.green, size: CGSize(width: 80, height: 80))
+            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor(red: 0.102, green: 0, blue: 0.5176, alpha: 1.0) /* #1a0084 */, size: CGSize(width: 80, height: 80))
         } else {
-            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor.red, size: CGSize(width: 80, height: 80))
+            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor(red: 0.5686, green: 0, blue: 0.1882, alpha: 1.0) /* #910030 */, size: CGSize(width: 80, height: 80))
         }
         
         return logEntryCell

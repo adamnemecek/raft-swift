@@ -34,7 +34,6 @@ class RaftView: UIView {
             role,
             heart,
             input,
-            logTitle,
             log,
             electionTimer,
             state,
@@ -45,10 +44,13 @@ class RaftView: UIView {
             ]
         )
         
+        log.layer.cornerRadius = 5
+        log.layer.masksToBounds = true
+        
         equalSizes(role, heart, electionTimer)
         equalSizes(commitIndexLabel, votedForLabel, currentTermLabel)
         disconnect.backgroundColor = .red
-        disconnect.text("disconnect")
+        disconnect.text("Disconnect")
         disconnect.showsTouchWhenHighlighted = true
         
         input.placeholder = "Input"
@@ -93,8 +95,6 @@ class RaftView: UIView {
             |currentTermLabel-votedForLabel-commitIndexLabel| ~ 100,
             0,
             |input| ~ 100,
-            0,
-            |logTitle| ,
             0,
             |log|,
             0,
