@@ -109,7 +109,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         } else if (jsonReader.type == "requestVoteRequest") {
             handleRequestVoteRequest(readJson: jsonReader)
         } else if (jsonReader.type == "requestVoteResponse") {
-            //            handleRequestVoteResponse(receivedJSON: receivedJSON)
+            handleRequestVoteResponse(readJson: jsonReader)
         }
     }
     
