@@ -26,6 +26,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     var rpcDue = [String : Timer]()
     var electionTimer = Timer()
     var electionTimeoutSeconds = 12
+    var heartbeatTimeoutSeconds = 2
     enum Role {
         case Follower
         case Candidate
@@ -46,9 +47,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         // Initialize RpcManager variables
         raftView.log.dataSource = self
         raftView.log.delegate = self
-        raftView.state.dataSource = self
-        raftView.state.delegate = self
-        
+
         nextIndex = NextIndex(cluster)
         matchIndex = MatchIndex(cluster)
         voteGranted = VoteGranted(cluster)
@@ -64,7 +63,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         
         // Selectors for view elements
         updateLogTableView()
-        updateStateTableView()
+        updateStateVariables()
         
         raftView.disconnect.addTarget(self, action: #selector(pressButton), for: .touchUpInside)
         raftView.input.addTarget(self, action: #selector(editInputField), for: .editingDidEnd)
@@ -142,6 +141,25 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         print("CurrentTerm: " + currentTerm.description )
         print("SelfIP: " + cluster.selfIp!)
     }
+    
+    func flashSendHeartbeat() {
+        DispatchQueue.main.async {
+            self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.red, size: CGSize(width: 50, height: 50))
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.gray, size: CGSize(width: 50, height: 50))
+            })
+        }
+    }
+    
+    func flashReceiveHeartbeat() {
+        DispatchQueue.main.async {
+            self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.blue, size: CGSize(width: 50, height: 50))
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.gray, size: CGSize(width: 50, height: 50))
+            })
+        }
+    }
+    
     func editInputField() {
         guard let msg = raftView.input.text else {
             print("No message")
@@ -168,9 +186,19 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         }
     }
     
-    func updateStateTableView() {
+    func updateStateVariables() {
         DispatchQueue.main.async {
-            self.raftView.state.reloadData()
+            var votedForString = ""
+            if ((self.votedFor) != nil) {
+                guard let vote = self.votedFor else {
+                    print("Some reason broke")
+                    return
+                }
+                votedForString = vote
+            }
+            self.raftView.currentTermLabel.text = "Current Term: " + self.currentTerm.description
+            self.raftView.commitIndexLabel.text = "Commit Index: " + self.log.commitIndex.description
+            self.raftView.votedForLabel.text = "Voted For: " + votedForString
         }
     }
     
@@ -179,48 +207,24 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if (tableView == raftView.log) {
-            print(log.log.count)
-            return log.log.count
-        } else {
-            return 3
-        }
+        return log.log.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if (tableView == raftView.log) {
-            let logEntryCell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath as IndexPath) as! LogEntryCell
-            guard let msg = log.getLogMessage(indexPath.row) else {
-                print("TEARS")
-                return logEntryCell
-            }
-            logEntryCell.message.text = msg
-            
-            if (indexPath.row <= log.commitIndex) {
-                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor.green, size: CGSize(width: 80, height: 80))
-            } else {
-                logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor.red, size: CGSize(width: 80, height: 80))
-            }
-            
+        let logEntryCell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath as IndexPath) as! LogEntryCell
+        guard let msg = log.getLogMessage(indexPath.row) else {
+            print("TEARS")
             return logEntryCell
-        } else {
-            let stateVariableCell = tableView.dequeueReusableCell(withIdentifier: "StateVariableCell", for: indexPath as IndexPath) as! StateVariableCell
-            switch indexPath.row {
-            case 0:
-                stateVariableCell.stateVariableName.text = "Current Term: "
-                stateVariableCell.stateVariableValue.text = currentTerm.description
-            case 1:
-                stateVariableCell.stateVariableName.text = "Voted For: "
-                stateVariableCell.stateVariableValue.text = votedFor?.description
-            case 2:
-                stateVariableCell.stateVariableName.text = "Commit Index: "
-                stateVariableCell.stateVariableValue.text = log.commitIndex.description
-            default:
-                stateVariableCell.stateVariableName.text = "Weird case"
-                stateVariableCell.stateVariableValue.text = "Tears"
-            }
-            return stateVariableCell
         }
+        logEntryCell.message.text = msg
+        
+        if (indexPath.row <= log.commitIndex) {
+            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor.green, size: CGSize(width: 80, height: 80))
+        } else {
+            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor.red, size: CGSize(width: 80, height: 80))
+        }
+        
+        return logEntryCell
     }
     
     // MARK: Handle RPC Methods
@@ -238,13 +242,13 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         stopHeartbeatTimers()
         role = Role.Follower
         updateRoleLabel()
-        updateStateTableView()
+        updateStateVariables()
     }
     
     func becomeCandidate() {
         role = Role.Candidate
         updateRoleLabel()
-        updateStateTableView()
+        updateStateVariables()
     }
     
     func becomeLeader() {
@@ -255,7 +259,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         }
         cluster.leaderIp = selfIp
         updateRoleLabel()
-        updateStateTableView()
+        updateStateVariables()
         stopHeartbeatTimers()
         for peer in cluster.getPeers() {
             nextIndex?.setNextIndex(server: peer, index: log.getLastLogIndex())
@@ -374,6 +378,10 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
                         print("Fail to get message")
                         return
                     }
+                    if (message == "Heartbeat") {
+                        flashReceiveHeartbeat()
+                    }
+                    
                     log.sliceAndAppend(idx: idx, entry: JsonHelper.createLogEntryJson(message: message, term: logEntryTerm, leaderIp: cluster.leaderIp))
                     updateLogTableView()
                     
@@ -464,7 +472,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         log.addEntryToLog(heartbeatEntry)
         updateLogTableView()
         sendAppendEntriesRequest(nextIdx, peer)
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: TimeInterval(heartbeatTimeoutSeconds), target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
     func sendHeartbeat(timer : Timer) {
@@ -477,13 +485,14 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         log.addEntryToLog(heartbeatEntry)
         updateLogTableView()
         sendAppendEntriesRequest(nextIdx, peer)
+        flashSendHeartbeat()
     }
     
     func resetHeartbeatTimer(peer: String) {
         let userInfo = JsonHelper.createUserInfo(peer: peer)
         rpcDue[peer]?.invalidate()
         rpcDue[peer] = nil
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: TimeInterval(heartbeatTimeoutSeconds), target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
         print("reset heartbeat timer")
     }
     
