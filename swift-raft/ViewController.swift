@@ -386,7 +386,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             print("Failed to get next index for peer")
             return
         }
-        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat " + nextIdx.description, term: currentTerm, leaderIp: cluster.leaderIp)
+        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
@@ -399,7 +399,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             print("Failed to get peer from timer or next index")
             return
         }
-        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat " + nextIdx.description, term: currentTerm, leaderIp: cluster.leaderIp)
+        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
