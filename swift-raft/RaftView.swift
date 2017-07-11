@@ -98,7 +98,7 @@ class RaftView: UIView {
             0,
             |log|,
             0,
-            |disconnect|,
+            |disconnect| ~ 75,
             0
         )
     }
