@@ -23,7 +23,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     var role = Role.Follower
     var rpcDue = [String : Timer]()
     var electionTimer = Timer()
-    var electionTimeoutSeconds = 7
+    var electionTimeoutSeconds = 12
     enum Role {
         case Follower
         case Candidate
@@ -53,7 +53,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         udpUnicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: unicastQueue)
         setupUnicastSocket()
         if (cluster.selfIp == "192.168.10.58") {
-            electionTimeoutSeconds = 5
+            electionTimeoutSeconds = 9
         }
     }
 
@@ -386,12 +386,12 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             print("Failed to get next index for peer")
             return
         }
-        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
+        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat " + nextIdx.description, term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
         sendAppendEntriesRequest(nextIdx, peer)
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
     func sendHeartbeat(timer : Timer) {
@@ -399,7 +399,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             print("Failed to get peer from timer or next index")
             return
         }
-        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
+        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat " + nextIdx.description, term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
         updateLogTextField()
@@ -410,7 +410,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         let userInfo = JsonHelper.createUserInfo(peer: peer)
         rpcDue[peer]?.invalidate()
         rpcDue[peer] = nil
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
         print("reset heartbeat timer")
     }
     
@@ -437,8 +437,10 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     func electionTimeout() {
         switch role {
         case Role.Follower:
+            print("Election Timeout Follower")
             startElection()
         case Role.Candidate:
+            print("Election Timeout Candidate")
             startElection()
         case Role.Leader:
             print("Leader does nothing in timeout")
@@ -461,7 +463,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                 print("Failed to get vote count")
                 return
             }
-            if (voteCount >= cluster.majorityCount) {
+            if (voteCount > cluster.majorityCount) {
                 becomeLeader()
             } else {
                 requestVotes()
