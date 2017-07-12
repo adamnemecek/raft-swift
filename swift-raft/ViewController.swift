@@ -456,6 +456,13 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
                 matchIndex?.setMatchIndex(server: sender, index: index)
                 nextIndex?.setNextIndex(server: sender, index: nextIdx)
                 
+                guard let nextCommitIdx = matchIndex?.getNextCommitIndex(currentCommitIndex: log.commitIndex) else {
+                    print("Failed to get next commit index")
+                    return
+                }
+                log.commitIndex = nextCommitIdx
+                updateLogTableView()
+                
                 if (log.getLastLogIndex() >= nextIdx) {
                     sendAppendEntriesRequest(nextIdx, sender)
                 }
@@ -583,7 +590,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
                 print("Failed to get vote count")
                 return
             }
-            if (voteCount >= cluster.majorityCount) {
+            if (voteCount > cluster.majorityCount) {
                 becomeLeader()
             } else {
                 requestVotes()
@@ -664,7 +671,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
             return
         }
         
-        if (voteCount >= cluster.majorityCount) {
+        if (voteCount > cluster.majorityCount) {
             becomeLeader()
         }
     }
