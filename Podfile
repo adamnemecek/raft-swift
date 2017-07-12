@@ -8,6 +8,8 @@ target 'swift-raft' do
   # Pods for swift-raft
   pod 'CocoaAsyncSocket'
   pod 'SwiftyJSON'
+  pod 'SteviaLayout'
+  pod 'FontAwesome.swift'
   
   target 'swift-raftTests' do
     inherit! :search_paths

@@ -9,8 +9,10 @@
 import UIKit
 import SwiftyJSON
 import CocoaAsyncSocket
+import Stevia
+import FontAwesome_swift
 
-class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
+class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDelegate, UITableViewDataSource {
     // MARK: RPC Manager Variables
     
     var currentTerm = 1
@@ -23,7 +25,9 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     var role = Role.Follower
     var rpcDue = [String : Timer]()
     var electionTimer = Timer()
-    var electionTimeoutSeconds = 7
+    var decrementTimer = Timer()
+    var electionTimeoutSeconds = 12
+    var heartbeatTimeoutSeconds = 2
     enum Role {
         case Follower
         case Candidate
@@ -34,32 +38,50 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     var udpUnicastSocket: GCDAsyncUdpSocket?
     
-    // MARK: Storyboard Variables
-    
-    @IBOutlet weak var roleLabel: UILabel!
-    @IBOutlet weak var logTextView: UITextView!
-    @IBOutlet weak var inputTextField: UITextField!
+    // MARK: View Variables
+    var raftView = RaftView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.edgesForExtendedLayout = .init(rawValue: 0)
         // Initialize RpcManager variables
+        raftView.log.dataSource = self
+        raftView.log.delegate = self
+
         nextIndex = NextIndex(cluster)
         matchIndex = MatchIndex(cluster)
         voteGranted = VoteGranted(cluster)
         votedFor = nil
-        startElectionTimer()
         // Initialize Socket variables
         let unicastQueue = DispatchQueue.init(label: "unicast")
         udpUnicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: unicastQueue)
         setupUnicastSocket()
         if (cluster.selfIp == "192.168.10.58") {
-            electionTimeoutSeconds = 5
+            electionTimeoutSeconds = 9
+            raftView.electionTimer.text = "9"
+        } else {
+            raftView.electionTimer.text = "12"
         }
+        startElectionTimer()
+        
+        // Selectors for view elements
+        updateLogTableView()
+        updateStateVariables()
+        
+        raftView.disconnect.addTarget(self, action: #selector(pressButton), for: .touchUpInside)
+        raftView.input.addTarget(self, action: #selector(editInputField), for: .editingDidEnd)
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        view.sv([raftView])
+        raftView.fillContainer()
     }
     
     // MARK: Socket Methods
@@ -115,15 +137,45 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     // MARK: Update UI Methods
     
-    @IBAction func pressButton(_ sender: Any) {
+    func pressButton() {
         print("Is Valid: " + electionTimer.isValid.description)
         print("FireDate: " + electionTimer.fireDate.description)
         print("Date: " + Date().description)
         print("LeaderIP: " + cluster.leaderIp)
         print("CurrentTerm: " + currentTerm.description )
+        print("SelfIP: " + cluster.selfIp!)
+        
+//        DispatchQueue.main.async {
+//            if (self.raftView.disconnect.titleLabel?.text == "Disconnect") {
+//                self.raftView.disconnect.titleLabel?.text = "Connect"
+//                self.udpUnicastSocket?.close()
+//            } else {
+//                self.raftView.disconnect.titleLabel?.text = "Disconnect"
+//                self.setupUnicastSocket()
+//            }
+//        }
     }
-    @IBAction func editInputField(_ sender: Any) {
-        guard let msg = inputTextField.text else {
+    
+    func flashSendHeartbeat() {
+        DispatchQueue.main.async {
+            self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.red, size: CGSize(width: 50, height: 50))
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.gray, size: CGSize(width: 50, height: 50))
+            })
+        }
+    }
+    
+    func flashReceiveHeartbeat() {
+        DispatchQueue.main.async {
+            self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor(red: 0, green: 0.4392, blue: 0.1804, alpha: 1.0) /* #00702e */      , size: CGSize(width: 50, height: 50))
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                self.raftView.heart.image = UIImage.fontAwesomeIcon(name: .heart, textColor: UIColor.gray, size: CGSize(width: 50, height: 50))
+            })
+        }
+    }
+    
+    func editInputField() {
+        guard let msg = raftView.input.text else {
             print("No message")
             return
         }
@@ -133,25 +185,61 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     func updateRoleLabel() {
         DispatchQueue.main.async {
             if (self.isFollower()) {
-                self.roleLabel.text = "Follower"
+                self.raftView.role.text = "Follower"
             } else if (self.isCandidate()) {
-                self.roleLabel.text = "Candidate"
+                self.raftView.role.text = "Candidate"
             } else {
-                self.roleLabel.text = "Leader"
+                self.raftView.role.text = "Leader"
             }
         }
     }
     
-    func updateLogTextField() {
+    func updateLogTableView() {
         DispatchQueue.main.async {
-            guard let logString = self.log.getLogEntriesString() else {
-                print("Failed to get log entries as a string")
-                return
-            }
-            self.logTextView.text = logString
+            self.raftView.log.reloadData()
         }
     }
     
+    func updateStateVariables() {
+        DispatchQueue.main.async {
+            var votedForString = ""
+            if ((self.votedFor) != nil) {
+                guard let vote = self.votedFor else {
+                    print("Some reason broke")
+                    return
+                }
+                votedForString = vote
+            }
+            self.raftView.currentTermLabel.text = "Current Term: " + self.currentTerm.description
+            self.raftView.commitIndexLabel.text = "Commit Index: " + self.log.commitIndex.description
+            self.raftView.votedForLabel.text = "Voted For: " + votedForString
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 80.0
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return log.log.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let logEntryCell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath as IndexPath) as! LogEntryCell
+        guard let msg = log.getLogMessage(indexPath.row) else {
+            print("TEARS")
+            return logEntryCell
+        }
+        logEntryCell.message.text = msg
+        
+        if (indexPath.row <= log.commitIndex) {
+            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor(red: 0.102, green: 0, blue: 0.5176, alpha: 1.0) /* #1a0084 */, size: CGSize(width: 80, height: 80))
+        } else {
+            logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .times, textColor: UIColor(red: 0.5686, green: 0, blue: 0.1882, alpha: 1.0) /* #910030 */, size: CGSize(width: 80, height: 80))
+        }
+        
+        return logEntryCell
+    }
     
     // MARK: Handle RPC Methods
     
@@ -168,11 +256,13 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         stopHeartbeatTimers()
         role = Role.Follower
         updateRoleLabel()
+        updateStateVariables()
     }
     
     func becomeCandidate() {
         role = Role.Candidate
         updateRoleLabel()
+        updateStateVariables()
     }
     
     func becomeLeader() {
@@ -183,6 +273,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         }
         cluster.leaderIp = selfIp
         updateRoleLabel()
+        updateStateVariables()
         stopHeartbeatTimers()
         for peer in cluster.getPeers() {
             nextIndex?.setNextIndex(server: peer, index: log.getLastLogIndex())
@@ -216,7 +307,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             // Add to log and send append entries RPC
             let jsonToStore = JsonHelper.createLogEntryJson(message: message, term: currentTerm, leaderIp: leaderIp)
             log.addEntryToLog(jsonToStore)
-            updateLogTextField()
+            updateLogTableView()
             appendEntries()
         } else {
             // Redirect request to leader
@@ -301,8 +392,12 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                         print("Fail to get message")
                         return
                     }
+                    if (message == "Heartbeat") {
+                        flashReceiveHeartbeat()
+                    }
+                    
                     log.sliceAndAppend(idx: idx, entry: JsonHelper.createLogEntryJson(message: message, term: logEntryTerm, leaderIp: cluster.leaderIp))
-                    updateLogTextField()
+                    updateLogTableView()
                     
                     guard let senderCommitIndex = readJson.leaderCommitIndex else {
                         print("Fail to get leader commit index")
@@ -361,6 +456,14 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                 matchIndex?.setMatchIndex(server: sender, index: index)
                 nextIndex?.setNextIndex(server: sender, index: nextIdx)
                 
+                guard let nextCommitIdx = matchIndex?.getNextCommitIndex(currentCommitIndex: log.commitIndex) else {
+                    print("Failed to get next commit index")
+                    return
+                }
+                log.commitIndex = nextCommitIdx
+                updateLogTableView()
+                updateStateVariables()
+                
                 if (log.getLastLogIndex() >= nextIdx) {
                     sendAppendEntriesRequest(nextIdx, sender)
                 }
@@ -389,9 +492,9 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
-        updateLogTextField()
+        updateLogTableView()
         sendAppendEntriesRequest(nextIdx, peer)
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: TimeInterval(heartbeatTimeoutSeconds), target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
     func sendHeartbeat(timer : Timer) {
@@ -402,15 +505,16 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
         let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
         
         log.addEntryToLog(heartbeatEntry)
-        updateLogTextField()
+        updateLogTableView()
         sendAppendEntriesRequest(nextIdx, peer)
+        flashSendHeartbeat()
     }
     
     func resetHeartbeatTimer(peer: String) {
         let userInfo = JsonHelper.createUserInfo(peer: peer)
         rpcDue[peer]?.invalidate()
         rpcDue[peer] = nil
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
+        rpcDue[peer] = Timer.scheduledTimer(timeInterval: TimeInterval(heartbeatTimeoutSeconds), target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
         print("reset heartbeat timer")
     }
     
@@ -425,11 +529,34 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     
     func startElectionTimer() {
         electionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(electionTimeoutSeconds), target: self, selector: #selector(self.electionTimeout), userInfo: nil, repeats: true)
+        raftView.electionTimer.text = electionTimeoutSeconds.description
+        startDecrementTimer()
+    }
+    
+    func startDecrementTimer() {
+        decrementTimer.invalidate()
+        decrementTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.decrementTimerLabel), userInfo: nil, repeats: true)
+    }
+    
+    func decrementTimerLabel() {
+        DispatchQueue.main.async {
+            guard let text = self.raftView.electionTimer.text else {
+                print("No election timer text")
+                return
+            }
+            guard var seconds = Int(text) else {
+                print("Int conversion fail")
+                return
+            }
+            seconds = seconds - 1
+            self.raftView.electionTimer.text = seconds.description
+        }
     }
     
     func resetElectionTimer() {
         DispatchQueue.main.async {
             self.electionTimer.invalidate()
+            self.raftView.electionTimer.text = self.electionTimeoutSeconds.description
             self.startElectionTimer()
         }
     }
@@ -437,11 +564,14 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
     func electionTimeout() {
         switch role {
         case Role.Follower:
+            print("Election Timeout Follower")
             startElection()
         case Role.Candidate:
+            print("Election Timeout Candidate")
             startElection()
         case Role.Leader:
             print("Leader does nothing in timeout")
+            resetElectionTimer()
         }
     }
     
@@ -461,7 +591,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
                 print("Failed to get vote count")
                 return
             }
-            if (voteCount >= cluster.majorityCount) {
+            if (voteCount > cluster.majorityCount) {
                 becomeLeader()
             } else {
                 requestVotes()
@@ -542,7 +672,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate {
             return
         }
         
-        if (voteCount >= cluster.majorityCount) {
+        if (voteCount > cluster.majorityCount) {
             becomeLeader()
         }
     }
