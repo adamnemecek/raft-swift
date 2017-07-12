@@ -27,8 +27,8 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     var heartbeatTimer = Timer()
     var electionTimer = Timer()
     var decrementTimer = Timer()
-    var electionTimeoutSeconds = 12
-    var heartbeatTimeoutSeconds = 2
+    var electionTimeoutSeconds = arc4random_uniform(6) + 5
+    var heartbeatTimeoutSeconds = arc4random_uniform(3) + 1
     enum Role {
         case Follower
         case Candidate
@@ -231,7 +231,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
             print("TEARS")
             return logEntryCell
         }
-        logEntryCell.message.text = msg
+        logEntryCell.message.text = indexPath.row.description + ": " + msg.description
         
         if (indexPath.row <= log.commitIndex) {
             logEntryCell.committed.image = UIImage.fontAwesomeIcon(name: .check, textColor: UIColor(red: 0.102, green: 0, blue: 0.5176, alpha: 1.0) /* #1a0084 */, size: CGSize(width: 80, height: 80))
@@ -404,6 +404,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
                     
                     if (senderCommitIndex > log.commitIndex) {
                         log.updateCommitIndex(min(senderCommitIndex, idx))
+                        updateStateVariables()
                     }
                 }
             }
@@ -499,25 +500,24 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     }
     
     func sendHeartbeat() {
-        DispatchQueue.main.async {
-            let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: self.currentTerm, leaderIp: self.cluster.leaderIp)
-            
-            self.log.addEntryToLog(heartbeatEntry)
-            self.updateLogTableView()
-            for peer in self.cluster.getPeers() {
-                guard let nextIdx = self.nextIndex?.getNextIndex(peer) else {
-                    print("Failed to get next index for peer")
-                    return
-                }
-                self.sendAppendEntriesRequest(nextIdx, peer)
+        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: self.currentTerm, leaderIp: self.cluster.leaderIp)
+        
+        self.log.addEntryToLog(heartbeatEntry)
+        self.updateLogTableView()
+        for peer in self.cluster.getPeers() {
+            guard let nextIdx = self.nextIndex?.getNextIndex(peer) else {
+                print("Failed to get next index for peer")
+                return
             }
-            self.flashSendHeartbeat()
+            self.sendAppendEntriesRequest(nextIdx, peer)
         }
+        self.flashSendHeartbeat()
     }
     
     func resetHeartbeatTimer(peer: String) {
         DispatchQueue.main.async {
             self.heartbeatTimer.invalidate()
+            self.heartbeatTimeoutSeconds = arc4random_uniform(3) + 1
             self.heartbeatTimer = Timer.scheduledTimer(timeInterval: TimeInterval(self.heartbeatTimeoutSeconds), target: self, selector: #selector(self.sendHeartbeat), userInfo: nil, repeats: true)
             print("reset heartbeat timer")
         }
@@ -558,6 +558,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     func resetElectionTimer() {
         DispatchQueue.main.async {
             self.electionTimer.invalidate()
+            self.electionTimeoutSeconds = arc4random_uniform(6) + 5
             self.raftView.electionTimer.text = self.electionTimeoutSeconds.description
             self.startElectionTimer()
         }
