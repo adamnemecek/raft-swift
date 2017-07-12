@@ -27,8 +27,8 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     var heartbeatTimer = Timer()
     var electionTimer = Timer()
     var decrementTimer = Timer()
-    var electionTimeoutSeconds = 12
-    var heartbeatTimeoutSeconds = 2
+    var electionTimeoutSeconds = arc4random_uniform(6) + 5
+    var heartbeatTimeoutSeconds = arc4random_uniform(3) + 1
     enum Role {
         case Follower
         case Candidate
@@ -517,6 +517,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     func resetHeartbeatTimer(peer: String) {
         DispatchQueue.main.async {
             self.heartbeatTimer.invalidate()
+            self.heartbeatTimeoutSeconds = arc4random_uniform(3) + 1
             self.heartbeatTimer = Timer.scheduledTimer(timeInterval: TimeInterval(self.heartbeatTimeoutSeconds), target: self, selector: #selector(self.sendHeartbeat), userInfo: nil, repeats: true)
             print("reset heartbeat timer")
         }
@@ -557,6 +558,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     func resetElectionTimer() {
         DispatchQueue.main.async {
             self.electionTimer.invalidate()
+            self.electionTimeoutSeconds = arc4random_uniform(6) + 5
             self.raftView.electionTimer.text = self.electionTimeoutSeconds.description
             self.startElectionTimer()
         }
