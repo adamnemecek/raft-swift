@@ -462,6 +462,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
                 }
                 log.commitIndex = nextCommitIdx
                 updateLogTableView()
+                updateStateVariables()
                 
                 if (log.getLastLogIndex() >= nextIdx) {
                     sendAppendEntriesRequest(nextIdx, sender)
