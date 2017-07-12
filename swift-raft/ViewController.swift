@@ -24,6 +24,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     var votedFor: String?
     var role = Role.Follower
     var rpcDue = [String : Timer]()
+    var heartbeatTimer = Timer()
     var electionTimer = Timer()
     var decrementTimer = Timer()
     var electionTimeoutSeconds = 12
@@ -253,7 +254,7 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     }
     
     func becomeFollower() {
-        stopHeartbeatTimers()
+        stopHeartbeatTimer()
         role = Role.Follower
         updateRoleLabel()
         updateStateVariables()
@@ -274,11 +275,8 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
         cluster.leaderIp = selfIp
         updateRoleLabel()
         updateStateVariables()
-        stopHeartbeatTimers()
-        for peer in cluster.getPeers() {
-            nextIndex?.setNextIndex(server: peer, index: log.getLastLogIndex())
-            startHeartbeatTimer(peer: peer)
-        }
+        stopHeartbeatTimer()
+        startHeartbeatTimer()
     }
     
     func isFollower() -> Bool {
@@ -483,47 +481,51 @@ class ViewController: UIViewController, GCDAsyncUdpSocketDelegate, UITableViewDe
     }
 
     
-    func startHeartbeatTimer(peer: String) {
-        let userInfo = JsonHelper.createUserInfo(peer: peer)
-        guard let nextIdx = nextIndex?.getNextIndex(peer) else {
-            print("Failed to get next index for peer")
-            return
+    func startHeartbeatTimer() {
+        DispatchQueue.main.async {
+            let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: self.currentTerm, leaderIp: self.cluster.leaderIp)
+            
+            self.log.addEntryToLog(heartbeatEntry)
+            self.updateLogTableView()
+            for peer in self.cluster.getPeers() {
+                guard let nextIdx = self.nextIndex?.getNextIndex(peer) else {
+                    print("Failed to get next index for peer")
+                    return
+                }
+                self.sendAppendEntriesRequest(nextIdx, peer)
+            }
+            self.heartbeatTimer = Timer.scheduledTimer(timeInterval: TimeInterval(self.heartbeatTimeoutSeconds), target: self, selector: #selector(self.sendHeartbeat), userInfo: nil, repeats: true)
         }
-        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
-        
-        log.addEntryToLog(heartbeatEntry)
-        updateLogTableView()
-        sendAppendEntriesRequest(nextIdx, peer)
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: TimeInterval(heartbeatTimeoutSeconds), target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
     }
     
-    func sendHeartbeat(timer : Timer) {
-        guard let peer = JsonReader((timer.userInfo as? JSON)!).peer, let nextIdx = nextIndex?.getNextIndex(peer) else {
-            print("Failed to get peer from timer or next index")
-            return
+    func sendHeartbeat() {
+        DispatchQueue.main.async {
+            let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: self.currentTerm, leaderIp: self.cluster.leaderIp)
+            
+            self.log.addEntryToLog(heartbeatEntry)
+            self.updateLogTableView()
+            for peer in self.cluster.getPeers() {
+                guard let nextIdx = self.nextIndex?.getNextIndex(peer) else {
+                    print("Failed to get next index for peer")
+                    return
+                }
+                self.sendAppendEntriesRequest(nextIdx, peer)
+            }
+            self.flashSendHeartbeat()
         }
-        let heartbeatEntry = JsonHelper.createLogEntryJson(message: "Heartbeat", term: currentTerm, leaderIp: cluster.leaderIp)
-        
-        log.addEntryToLog(heartbeatEntry)
-        updateLogTableView()
-        sendAppendEntriesRequest(nextIdx, peer)
-        flashSendHeartbeat()
     }
     
     func resetHeartbeatTimer(peer: String) {
-        let userInfo = JsonHelper.createUserInfo(peer: peer)
-        rpcDue[peer]?.invalidate()
-        rpcDue[peer] = nil
-        rpcDue[peer] = Timer.scheduledTimer(timeInterval: TimeInterval(heartbeatTimeoutSeconds), target: self, selector: #selector(sendHeartbeat(timer:)), userInfo: userInfo, repeats: true)
-        print("reset heartbeat timer")
+        DispatchQueue.main.async {
+            self.heartbeatTimer.invalidate()
+            self.heartbeatTimer = Timer.scheduledTimer(timeInterval: TimeInterval(self.heartbeatTimeoutSeconds), target: self, selector: #selector(self.sendHeartbeat), userInfo: nil, repeats: true)
+            print("reset heartbeat timer")
+        }
     }
     
-    func stopHeartbeatTimers() {
-        for server in cluster.getPeers() {
-            if (rpcDue[server] != nil) {
-                rpcDue[server]?.invalidate()
-                rpcDue[server] = nil
-            }
+    func stopHeartbeatTimer() {
+        DispatchQueue.main.async {
+            self.heartbeatTimer.invalidate()
         }
     }
     
